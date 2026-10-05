@@ -7,14 +7,11 @@ function App() {
 
 
   const callAPI = async ()=>{
-    //Abort controller to cancel the fetch request
-  const controller = new AbortController();
-  const { signal } = controller;
 
     try{
       setIsLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:3000/api/test', {signal} );
+      const response = await fetch('http://localhost:3000/api/test');
 
       if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -23,12 +20,13 @@ function App() {
       const data = await response.json();
       setMessage(data.message);
     }catch (error){
-      if(error.name !== 'AbortError'){
+      if(error){
         setError(error.message);
       }
     }finally {
         // The finally block guarantees loading stops whether the request succeeds or fails
         setIsLoading(false); 
+        setMessage('');
       }
   }
 
