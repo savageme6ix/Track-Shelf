@@ -5,7 +5,7 @@ function App() {
 
   const callAPI = async ()=>{
     try{
-      const response = await fetch('http://localhost:3000');
+      const response = await fetch('http://localhost:3000/api/test');
       const data = await response.json();
       setMessage(data.message);
     }catch (error){
