@@ -1,5 +1,6 @@
 import { toHex } from '../utils/color';
 
+
 export default function ThemePanel({ theme }) {
   const { bg, accent, text, palette } = theme;
 
