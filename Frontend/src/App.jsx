@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Header from './components/Header';
-import AlbumCard from './components/AlbumCard';
+import AlbumCard from './Components/AlbumsCard';
 import ThemePanel from './components/ThemePanel';
 import { PLACEHOLDER_SRC } from './components/placeholder';
 import { useAlbumTheme } from './hooks/useAlbumTheme';
