@@ -13,7 +13,7 @@ console.log("Spotify client ID loaded:", Boolean(process.env.SPOTIFY_CLIENT_ID))
     .slice(0, length);
 };
 
-  let state = generateRandomString(16);
+  req.session.spotifyState = generateRandomString(16);
   let scope = 'user-read-private user-read-email playlist-read-private';
 
   res.redirect('https://accounts.spotify.com/authorize?' +
@@ -22,7 +22,7 @@ console.log("Spotify client ID loaded:", Boolean(process.env.SPOTIFY_CLIENT_ID))
       client_id: client_id,
       scope: scope,
       redirect_uri: redirect_uri,
-      state: state
+      state: req.session.spotifyState
     }));
 };
 
