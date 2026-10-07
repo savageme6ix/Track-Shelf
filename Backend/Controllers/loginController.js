@@ -5,7 +5,7 @@ var redirect_uri = process.env.SPOTIFY_REDIRECT_URI;
 const login =(req, res)=> {
 
   var state = generateRandomString(16);
-  var scope = 'user-read-private user-read-email';
+  var scope = 'user-read-private user-read-email playlist-read-private';
 
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({

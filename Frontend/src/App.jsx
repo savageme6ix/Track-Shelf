@@ -7,9 +7,9 @@ import { useAlbumTheme } from './utils/useAlbumTheme';
 import './index.css';
 
 function App() {
-  // const [message,setMessage] = useState('');
-  // const [isLoading,setIsLoading] = useState(false);
-  // const [error,setError] = useState(null);
+  const [message,setMessage] = useState('');
+  const [isLoading,setIsLoading] = useState(false);
+  const [error,setError] = useState(null);
 
   const { theme, processImage } = useAlbumTheme();
   const [src, setSrc] = useState(PLACEHOLDER_SRC);
@@ -39,7 +39,7 @@ function App() {
   //   try{
   //     setIsLoading(true);
   //     setError(null);
-  //     const response = await fetch('http://localhost:3000/api/test');
+  //     const response = await fetch('http://localhost:3000/api/spotify/login');
 
   //     if (!response.ok) {
   //         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -59,17 +59,18 @@ function App() {
   // }
 
   return (
-    // <div style={{ padding: '20px' }}>
-    //   {/* 4. Disable button during loading to prevent double-clicks */}
-    //   <button onClick={callAPI} disabled={isLoading}>
-    //     {isLoading ? 'Fetching...' : 'Get Message'}
-    //   </button>
+    <>
+    <div style={{ padding: '20px' }}>
+      {/* 4. Disable button during loading to prevent double-clicks */}
+      <button onClick={window.location.assign("http://127.0.0.1:3000/api/spotify/login")} disabled={isLoading}>
+        {isLoading ? 'Fetching...' : 'login'}
+      </button>
 
-    //   {/* 5. Inline layout so the button doesn't vanish while loading */}
-    //   {isLoading && <div> Loading...</div>}
-    //   {error && <div style={{ color: 'red' }}> Error: {error}</div>}
-    //   {message && !isLoading && <p>{message}</p>}
-    // </div>
+      {/* 5. Inline layout so the button doesn't vanish while loading */}
+      {isLoading && <div> Loading...</div>}
+      {error && <div style={{ color: 'red' }}> Error: {error}</div>}
+      {message && !isLoading && <p>{message}</p>}
+    </div>
 
     <div className="wrap">
       <Header onFile={handleFile} />
@@ -89,6 +90,7 @@ function App() {
         Canvas + a small k‑means palette extractor (no libraries).
       </footer>
     </div>
+    </>
 
   );
 
