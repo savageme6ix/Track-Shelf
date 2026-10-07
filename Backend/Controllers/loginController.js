@@ -5,7 +5,7 @@ var client_id = process.env.SPOTIFY_CLIENT_ID;
 var redirect_uri = process.env.SPOTIFY_REDIRECT_URI;
 
 const login =(req, res)=> {
-
+console.log("Spotify client ID loaded:", Boolean(process.env.SPOTIFY_CLIENT_ID));
   const generateRandomString = (length = 16) => {
   return crypto
     .randomBytes(Math.ceil(length / 2))

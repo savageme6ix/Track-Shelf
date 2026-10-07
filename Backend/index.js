@@ -20,7 +20,7 @@ app.get("/api/test", (req,res)=>{
 
 app.use("/api/spotify", playlistRoute);
 app.use("/api/spotify",loginRoute);
-app.use("api/spotify",callbackRoute);
+app.use("/api/spotify",callbackRoute);
 
 app.listen(PORT, ()=>{
     console.log("Listening on port", PORT)

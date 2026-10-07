@@ -62,7 +62,7 @@ function App() {
     <>
     <div style={{ padding: '20px' }}>
       {/* 4. Disable button during loading to prevent double-clicks */}
-      <button onClick={window.location.assign("http://127.0.0.1:3000/api/spotify/login")} disabled={isLoading}>
+      <button onClick={() => window.location.assign("http://127.0.0.1:3000/api/spotify/login")} disabled={isLoading}>
         {isLoading ? 'Fetching...' : 'login'}
       </button>
 
