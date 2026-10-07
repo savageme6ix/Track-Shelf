@@ -13,8 +13,8 @@ const login =(req, res)=> {
     .slice(0, length);
 };
 
-  var state = generateRandomString(16);
-  var scope = 'user-read-private user-read-email playlist-read-private';
+  let state = generateRandomString(16);
+  let scope = 'user-read-private user-read-email playlist-read-private';
 
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
