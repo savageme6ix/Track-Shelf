@@ -4,6 +4,7 @@ import cors from "cors";
 const app = express();
 const PORT = 3000;
 import playlistRoute from "./Routes/playlistRoute.js";
+import loginRoute from "Routes/loginRoute.js";
 
 // const corsOptions = {
 //     origin: 'http://localhost:5173', // Only allow requests from this domain
@@ -18,6 +19,7 @@ app.get("/api/test", (req,res)=>{
 });
 
 app.use("/api/spotify", playlistRoute);
+app.use("api/spotify",loginRoute);
 
 app.listen(PORT, ()=>{
     console.log("Listening on port", PORT)
