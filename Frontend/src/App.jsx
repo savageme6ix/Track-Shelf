@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import Header from './components/Header';
+import Header from './Components/Header';
 import AlbumCard from './Components/AlbumsCard';
-import ThemePanel from './components/ThemePanel';
-import { PLACEHOLDER_SRC } from './components/placeholder';
-import { useAlbumTheme } from './hooks/useAlbumTheme';
+import ThemePanel from './Components/ThemePanel';
+import { PLACEHOLDER_SRC } from './utils/placeholder';
+import { useAlbumTheme } from './utils/useAlbumTheme';
 import './index.css';
 
 function App() {

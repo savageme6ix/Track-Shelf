@@ -124,7 +124,7 @@ p { color: var(--muted); margin: 8px 0 0 0; }
 
 .note { color: var(--muted); font-size: 12px; margin-top: 8px; }
 
-input[type="file"] { cursor: pointer; }
+input[type="file"] { cursor: pointer; border-radius: 10px;  }
 
 footer { margin-top: 24px; color: var(--muted); font-size: 12px; }
 a { color: var(--text); }
