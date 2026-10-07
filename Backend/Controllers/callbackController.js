@@ -9,11 +9,24 @@ const callback = (req, res)=> {
   
 
   if (req.query.state !== req.session.spotifyState) {
-    res.redirect('/#' +
+  // 1. Destroy the session on the server
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Failed to destroy session:', err);
+      // Even if it fails, you likely still want to redirect the user
+    }
+
+    // 2. Clear the cookie on the client browser
+    res.clearCookie('connect.sid'); 
+
+    // 3. Redirect the user now that the session is wiped
+    return res.redirect('/#' +
       querystring.stringify({
         error: 'state_mismatch'
-      }));
-  } else {
+      })
+    );
+  });
+} else {
     var authOptions = {
       url: 'https://accounts.spotify.com/api/token',
       form: {
