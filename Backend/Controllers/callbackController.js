@@ -68,7 +68,8 @@ req.session.spotifyAccessToken = tokenData.access_token;
 req.session.spotifyRefreshToken = tokenData.refresh_token;
 delete req.session.spotifyState;
 
-return res.send("Spotify connected. You can return to the app.");
+
+return res.redirect("http://localhost:5173/?spotify=connected");
 
   }catch(error){
     console.error("Network or parsing error during token exchange:");
