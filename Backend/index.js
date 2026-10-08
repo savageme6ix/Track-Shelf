@@ -9,13 +9,12 @@ import loginRoute from "./Routes/loginRoute.js";
 import callbackRoute from "./Routes/callbackRoute.js"
 import refreshTokenRoute from './Routes/refreshTokenRoute.js';
 import meRoute from './Routes/meRoute.js';
-// const corsOptions = {
-//     origin: 'http://localhost:5173', // Only allow requests from this domain
-//     optionsSuccessStatus: 200 
-// };
+app.use(cors({
+  origin: "http://127.0.0.1:5173",
+  credentials: true,
+}));
 
 app.use(express.json());
-app.use(cors());
 
 app.use(session({
   secret: process.env.SESSION_SECRET, // Used to sign the session ID cookie
