@@ -69,6 +69,25 @@ function App() {
       <button onClick={() => window.location.assign("http://127.0.0.1:3000/api/spotify/login")} disabled={isLoading}>
         {isLoading ? 'Fetching...' : 'login'}
       </button>
+      <button
+        onClick={async () => {
+        try {
+        const response = await fetch(
+        "http://127.0.0.1:3000/api/spotify/me",
+        {
+          credentials: "include",
+        }
+         );
+
+         const data = await response.json();
+        console.log(data);
+      } catch (error) {
+        console.error(error);
+       }
+    }}
+>
+  get
+</button>
 
       {/* 5. Inline layout so the button doesn't vanish while loading */}
       {isLoading && <div> Loading...</div>}
