@@ -1,7 +1,7 @@
-
+import { getValidAccessToken } from "../Utils/spotifyAccessTokenChecker";
 const getMe = async (req, res) => {
   try {
-    const accessToken = req.session.spotifyAccessToken;
+    const accessToken = await getValidAccessToken(req);
 
     // Check whether the session contains a token.
     if (!accessToken) {
@@ -35,9 +35,16 @@ const getMe = async (req, res) => {
   } catch (error) {
     console.error("getMe failed:", error);
 
-    return res.status(500).json({
-      error: "Internal server error",
+    if (error.message === "reauthorization_required") {
+      return res.status(401).json({
+        error: "reauthorization_required",
+      });
+    }
+
+    return res.status(502).json({
+      error: "spotify_request_failed",
     });
+    
   }
 };
 

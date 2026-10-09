@@ -28,6 +28,7 @@ const response = await fetch("https://accounts.spotify.com/api/token", {
 const body = await response.json();
 
 req.session.spotifyAccessToken = body.access_token;
+req.session.spotifyExpiresAt = Date.now() + body.expires_in * 1000;
 if (body.refresh_token) {
   req.session.spotifyRefreshToken = body.refresh_token;
 }

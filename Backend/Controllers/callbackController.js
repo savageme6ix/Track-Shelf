@@ -66,6 +66,7 @@ if (!tokenResponse.ok) {
 
 req.session.spotifyAccessToken = tokenData.access_token;
 req.session.spotifyRefreshToken = tokenData.refresh_token;
+req.session.spotifyExpiresAt = Date.now() + tokenData.expires_in * 1000;
 delete req.session.spotifyState;
 
 
