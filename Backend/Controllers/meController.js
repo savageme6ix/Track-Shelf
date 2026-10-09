@@ -1,4 +1,4 @@
-import { getValidAccessToken } from "../Utils/spotifyAccessTokenChecker";
+import { getValidAccessToken } from "../Utils/spotifyAccessTokenChecker.js";
 const getMe = async (req, res) => {
   try {
     const accessToken = await getValidAccessToken(req);
@@ -44,7 +44,7 @@ const getMe = async (req, res) => {
     return res.status(502).json({
       error: "spotify_request_failed",
     });
-    
+
   }
 };
 
