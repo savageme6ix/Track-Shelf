@@ -33,34 +33,6 @@ function App() {
     if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
   }, []);
 
-  // After Spotify sends us back, call Express and include the session cookie.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("spotify") !== "connected") return;
-
-    const refreshSession = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await fetch("http://127.0.0.1:3000/api/spotify/refresh_token", {
-          method: "POST",
-          credentials: "include",
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || `HTTP ${response.status}`);
-        }
-        setMessage("Spotify connected");
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    refreshSession();
-  }, []);
-
 
   return (
     <>
@@ -69,6 +41,7 @@ function App() {
       <button onClick={() => window.location.assign("http://127.0.0.1:3000/api/spotify/login")} disabled={isLoading}>
         {isLoading ? 'Fetching...' : 'login'}
       </button>
+      
       <button
         onClick={async () => {
         try {
