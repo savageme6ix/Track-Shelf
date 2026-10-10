@@ -1,3 +1,4 @@
+import axios from 'axios';
 const getPlaylist = (req, res) => {
   const submittedUrl = req.body?.url;
 
@@ -28,7 +29,15 @@ const getPlaylist = (req, res) => {
     });
   }
 
-  return res.status(200).json({ playlistId: playlistPath[1] });
+  let playlistId = playlistPath[1];
+
+  // Now, get the playlist using extracted ID
+
+  try{
+
+  }catch(error){
+
+  }
 }
 
 export default getPlaylist
