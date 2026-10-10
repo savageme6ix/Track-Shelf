@@ -12,7 +12,7 @@ export default function AlbumCard({ src, title, subtitle, onImageLoad }) {
           <h2 className="artist">{title}</h2>
           <p className="subtitle">{subtitle}</p>
         </div>
-        <button className="play">Play</button>
+        <button className="play">Track</button>
       </div>
     </section>
   );

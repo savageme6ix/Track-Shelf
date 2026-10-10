@@ -50,6 +50,18 @@ p { color: var(--muted); margin: 8px 0 0 0; }
   font-family: inherit;
 }
 
+.importButton{
+  text-decoration: none;
+  border:none;
+  height: 30px;
+  width:100px;
+  text-align: center;
+  font-family: inherit;
+  border-radius: 5px;
+  padding:5px;
+  background-color:  #F1A208;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 320px 1fr;
