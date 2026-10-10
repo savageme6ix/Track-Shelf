@@ -41,6 +41,15 @@ p { color: var(--muted); margin: 8px 0 0 0; }
   border-radius: 12px;
 }
 
+.idInputter{
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+  height:35px;
+  background-color: rgb(235, 230, 230);
+  font-family: inherit;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 320px 1fr;
