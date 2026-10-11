@@ -39,7 +39,7 @@ const getPlaylist = async(req, res) => {
     const metaDataResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`,{
       params: {
         //return only these three items
-         fields: 'name,images,items.total'
+         fields: 'id,name,images,items.total'
     },
     headers: {
         'Authorization': `Bearer ${accessToken}`
@@ -58,7 +58,7 @@ const getPlaylist = async(req, res) => {
       limit: 20, // Get up to 20 tracks at a time
       offset: 0, // Start at the very beginning of the playlist
       // This filters down the response to ONLY track names and artist names
-      fields: 'items(item(name,artists(name),album(images)))' 
+      fields: 'items(item(id,name,duration_ms,artists(name),album(name,images)))' 
     }
   });
     // 3. SEND ONE SINGLE RESPONSE combining all your collected data
