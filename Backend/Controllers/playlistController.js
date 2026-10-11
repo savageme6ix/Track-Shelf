@@ -33,10 +33,10 @@ const getPlaylist = async(req, res) => {
   let playlistId = playlistPath[1];
 
   // Now, get the playlist using extracted ID
-
   try{
      const accessToken = await getValidAccessToken(req);
-    const response = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`,{
+      // 1. Fetch Playlist Metadata (Name, Image, Total Count)
+    const metaDataResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`,{
       params: {
         //return only these three items
          fields: 'name,images,tracks.total'
@@ -45,11 +45,41 @@ const getPlaylist = async(req, res) => {
         'Authorization': `Bearer ${accessToken}`
     }
   });
-    res.json(response.data)
+
+  // 2. Fetch Playlist Tracks (Track Names, Artist Names,and Track artwork)
+  const token = await getValidAccessToken(req);
+  let playlistId = playlistPath[1];
+  
+  const tracksResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+    // 1. Headers handle Authorization
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    // 2. Params handle configuration, filtering, and sizing
+    params: {
+      limit: 20, // Get up to 20 tracks at a time
+      offset: 0, // Start at the very beginning of the playlist
+      // This filters down the response to ONLY track names and artist names
+      fields: 'items(track(name,artists(name),album(images)))'
+    }
+  });
+    // 3. SEND ONE SINGLE RESPONSE combining all your collected data
+    return res.json({
+      playlistInfo: metaDataResponse.data,
+      tracks: tracksResponse.data.items
+    });
   }catch(error){
-    console.error('Error getting playlist:', error.message);
-    res.status(500).json({ error: 'Failed to fetch playlist' });
+
   }
+
+  try{
+    
+  }catch(error){
+    console.error('Spotify API Fetch Error:', error.response?.data || error.message);
+    // Prevents crashing if one of the network steps fails
+    return res.status(500).json({ error: 'Failed to fetch playlist data from Spotify.' });
+  }
+
 }
 
 export default getPlaylist

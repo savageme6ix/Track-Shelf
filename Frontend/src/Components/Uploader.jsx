@@ -5,6 +5,8 @@ export default function Uploader({ onFile }) {
   return (
     <div className="uploader">
       <button className="importButton" onClick={async ()=> {
+        // If the box is empty, don't waste an API call
+          if (!playlistUrl.trim()) return;
         try{
           const response = await axios.post('http://127.0.0.1:3000/api/spotify/playlist',
             {
@@ -15,6 +17,7 @@ export default function Uploader({ onFile }) {
             }
             );
           console.log("Success", response.data);
+          setPlaylistUrl('');
         }catch(error){
            console.error(error)
         }
