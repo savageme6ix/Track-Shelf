@@ -35,13 +35,14 @@ const getPlaylist = async(req, res) => {
   // Now, get the playlist using extracted ID
 
   try{
+     const accessToken = await getValidAccessToken(req);
     const response = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`,{
       params: {
         //return only these three items
          fields: 'name,images,tracks.total'
     },
     headers: {
-        'Authorization': `Bearer ${getValidAccessToken(req)}`
+        'Authorization': `Bearer ${accessToken}`
     }
   });
     res.json(response.data)

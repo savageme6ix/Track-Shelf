@@ -6,16 +6,20 @@ export default function Uploader({ onFile }) {
     <div className="uploader">
       <button className="importButton" onClick={async ()=> {
         try{
-          const response = await axios.post('http://127.0.0.1:3000/api/spotify/playlist',{
-            url: playlistUrl ,
-            credentials: 'include',
-          });
+          const response = await axios.post('http://127.0.0.1:3000/api/spotify/playlist',
+            {
+              url:playlistUrl
+            },
+            {
+              withCredentials:true
+            }
+            );
           console.log("Success", response.data);
         }catch(error){
            console.error(error)
         }
-      } } value={playlistUrl} onChange={(e)=>setPlaylistUrl(e.target.value)}>Import</button>
-      <input placeholder="Paste playlist link" className="idInputter" />
+      } }>Import</button>
+      <input placeholder="Paste playlist link" className="idInputter" value={playlistUrl} onChange={(e)=>setPlaylistUrl(e.target.value)} />
     </div>
   );
 }
