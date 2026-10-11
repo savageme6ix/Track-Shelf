@@ -1,5 +1,6 @@
 import axios from 'axios';
-const getPlaylist = (req, res) => {
+import { getValidAccessToken } from '../Utils/spotifyAccessTokenChecker.js';
+const getPlaylist = async(req, res) => {
   const submittedUrl = req.body?.url;
 
   if (typeof submittedUrl !== "string" || submittedUrl.trim() === "") {
@@ -34,9 +35,19 @@ const getPlaylist = (req, res) => {
   // Now, get the playlist using extracted ID
 
   try{
-
+    const response = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`,{
+      params: {
+        //return only these three items
+         fields: 'name,images,tracks.total'
+    },
+    headers: {
+        'Authorization': `Bearer ${getValidAccessToken(req)}`
+    }
+  });
+    res.json(response.data)
   }catch(error){
-
+    console.error('Error getting playlist:', error.message);
+    res.status(500).json({ error: 'Failed to fetch playlist' });
   }
 }
 
