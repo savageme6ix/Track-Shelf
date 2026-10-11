@@ -48,7 +48,7 @@ const getPlaylist = async(req, res) => {
 
   // 2. Fetch Playlist Tracks (Track Names, Artist Names,and Track artwork)
   
-  const tracksResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+  const tracksResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/items`, {
     // 1. Headers handle Authorization
     headers: {
       'Authorization': `Bearer ${accessToken}`
