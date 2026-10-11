@@ -1,21 +1,19 @@
 import Uploader from './Uploader';
 
-export default function Header({ onFile }) {
+export default function Header({ onImport, isLoading, error, onConnect }) {
   return (
-    <header>
-      <div>
+    <header className="site-header">
+      <div className="brand-copy">
         <h1>Track-Shelf</h1>
-        <p>
-          Upload any playlist. Track Shelf compares the playlist
-          to music 
-        </p>
-        <p>
-          on your local library 
-          and shows you which ones you 
-          have locally.
-        </p>
+        <p>Bring a Spotify playlist into your music shelf.</p>
       </div>
-      <Uploader onFile={onFile} />
+      <div className="header-actions">
+        <button className="connect-button" type="button" onClick={onConnect}>
+          Connect to Spotify
+        </button>
+        <Uploader onImport={onImport} isLoading={isLoading} />
+      </div>
+      {error && <p className="import-error" role="alert">{error}</p>}
     </header>
   );
 }
