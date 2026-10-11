@@ -1,8 +1,11 @@
 import { toHex } from '../utils/color';
 
-export default function ThemePanel({ theme, tracks, isLoading, progress, status }) {
+export default function ThemePanel({ theme, tracks, isLoading, progress, status, trackPage, setTrackPage }) {
   const { bg, accent, text, palette } = theme;
-  const visibleTracks = tracks.slice(0, 6);
+  const pageSize = 6;
+  const pageCount = Math.ceil(tracks.length / pageSize);
+  const firstTrackIndex = trackPage * pageSize;
+  const visibleTracks = tracks.slice(firstTrackIndex, firstTrackIndex + pageSize);
 
   return (
     <aside className="panel">
@@ -36,7 +39,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, status 
       {visibleTracks.length > 0 ? (
         <div className="track-list">
           {visibleTracks.map((track, index) => (
-            <article className="track-item" key={`${track.id}-${index}`}>
+            <article className="track-item" key={`${track.id}-${firstTrackIndex + index}`}>
               {track.image ? (
                 <img className="track-art" src={track.image} alt="" loading="lazy" />
               ) : (
@@ -46,11 +49,29 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, status 
                 <h3 title={track.name}>{track.name}</h3>
                 <p title={track.artist}>{track.artist}</p>
               </div>
-              <span className="track-index">{String(index + 1).padStart(2, '0')}</span>
+              <span className="track-index">{String(firstTrackIndex + index + 1).padStart(2, '0')}</span>
             </article>
           ))}
-          {tracks.length > visibleTracks.length && (
-            <p className="more-tracks">+ {tracks.length - visibleTracks.length} more loaded tracks</p>
+          {pageCount > 1 && (
+            <nav className="track-pagination" aria-label="Track pages">
+              <button
+                type="button"
+                onClick={() => setTrackPage((page) => page - 1)}
+                disabled={trackPage === 0}
+              >
+                ← Previous
+              </button>
+              <span>
+                {firstTrackIndex + 1}–{Math.min(firstTrackIndex + pageSize, tracks.length)} of {tracks.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setTrackPage((page) => page + 1)}
+                disabled={trackPage >= pageCount - 1}
+              >
+                Next →
+              </button>
+            </nav>
           )}
         </div>
       ) : (

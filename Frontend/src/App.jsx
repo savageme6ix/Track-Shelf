@@ -16,12 +16,14 @@ function App() {
   const [error, setError] = useState('');
   const [status, setStatus] = useState('Paste a Spotify playlist link to get started.');
   const [progress, setProgress] = useState(0);
+  const [trackPage, setTrackPage] = useState(0);
   const { theme, processImage } = useAlbumTheme();
 
   const importPlaylist = async (url) => {
     setIsLoading(true);
     setError('');
     setProgress(0);
+    setTrackPage(0);
     setStatus('Fetching playlist details and tracks…');
 
     try {
@@ -88,6 +90,8 @@ function App() {
           isLoading={isLoading}
           progress={progress}
           status={status}
+          trackPage={trackPage}
+          setTrackPage={setTrackPage}
         />
       </div>
 
