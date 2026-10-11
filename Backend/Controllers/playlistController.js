@@ -61,10 +61,29 @@ const getPlaylist = async(req, res) => {
       fields: 'items(item(id,name,duration_ms,artists(name),album(name,images)))' 
     }
   });
-    // 3. SEND ONE SINGLE RESPONSE combining all your collected data
+  const meta = metaDataResponse.data;
+
+const playlist = {
+  id: meta.id,
+  name: meta.name,
+  image: meta.images?.[0]?.url ?? null,
+  totalTracks: meta.items?.total ?? 0
+};
+
+const tracks = tracksResponse.data.items
+  .filter(entry => entry.item) // removed or unavailable tracks can come back null
+  .map(({ item }) => ({
+    id: item.id,
+    name: item.name,
+    artist: item.artists.map(a => a.name).join(', '),
+    album: item.album.name,
+    durationMs: item.duration_ms,
+    image: item.album.images?.[0]?.url ?? null
+  }));
+    // 3. SEND ONE SINGLE RESPONSE combining all collected data
     return res.json({
-      playlistInfo: metaDataResponse.data,
-      tracks: tracksResponse.data.items
+      playlist: playlist,
+      tracks: tracks
     });
   }catch(error){
     console.error('Spotify API Fetch Error:', error.response?.data || error.message);
