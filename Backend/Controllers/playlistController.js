@@ -47,13 +47,11 @@ const getPlaylist = async(req, res) => {
   });
 
   // 2. Fetch Playlist Tracks (Track Names, Artist Names,and Track artwork)
-  const token = await getValidAccessToken(req);
-  let playlistId = playlistPath[1];
   
   const tracksResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
     // 1. Headers handle Authorization
     headers: {
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${accessToken}`
     },
     // 2. Params handle configuration, filtering, and sizing
     params: {
@@ -68,12 +66,6 @@ const getPlaylist = async(req, res) => {
       playlistInfo: metaDataResponse.data,
       tracks: tracksResponse.data.items
     });
-  }catch(error){
-
-  }
-
-  try{
-    
   }catch(error){
     console.error('Spotify API Fetch Error:', error.response?.data || error.message);
     // Prevents crashing if one of the network steps fails
