@@ -18,7 +18,7 @@ const getPlaylist = async(req, res) => {
 
   // Check the actual parsed host and path; URL instances do not have String.match().
   //regex to check if the pathname follows spotifys structure
-  const playlistPath = playlistUrl.pathname.match(/^\/playlist\/([a-zA-Z0-9]{22})\/?$/);
+  const playlistPath = playlistUrl.pathname.match(/^\/playlist\/([a-zA-Z0-9]{22})/);
   const isSpotifyHost =
     playlistUrl.protocol === "https:" &&
     playlistUrl.hostname === "open.spotify.com" &&
