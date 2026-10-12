@@ -47,21 +47,30 @@ const getPlaylist = async(req, res) => {
   });
 
   // 2. Fetch Playlist Tracks (Track Names, Artist Names,and Track artwork)
-  
-  const tracksResponse = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/items`, {
-    // 1. Headers handle Authorization
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
-    },
-    // 2. Params handle configuration, filtering, and sizing
-    params: {
-      limit: 20, // Get up to 20 tracks at a time
-      offset: 0, // Start at the very beginning of the playlist
-      // This filters down the response to ONLY track names and artist names
-      fields: 'items(item(id,name,duration_ms,artists(name),album(name,images)))' 
-    }
-  });
   const meta = metaDataResponse.data;
+  const allItems = [];
+  const limit = 20;
+  let offset = 0;
+
+while (offset < meta.items.total) {
+  const response = await axios.get(
+    `https://api.spotify.com/v1/playlists/${playlistId}/items`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: {
+        limit,
+        offset,
+        fields: 'items(item(id,name,duration_ms,artists(name),album(name,images)))',
+      },
+    }
+  );
+
+  const items = response.data.items ?? [];
+  if (items.length === 0) break;
+
+  allItems.push(...items);
+  offset += items.length;
+}
 
 const playlist = {
   id: meta.id,
@@ -70,7 +79,7 @@ const playlist = {
   totalTracks: meta.items?.total ?? 0
 };
 
-const tracks = tracksResponse.data.items
+const tracks = allItems
   .filter(entry => entry.item) // removed or unavailable tracks can come back null
   .map(({ item }) => ({
     id: item.id,
