@@ -7,13 +7,14 @@ const youtubeCache = new NodeCache({stdTTL:600,checkperiod:120});
 
 const searchVid = async(req,res)=>{
     try{
-        const query = req.query.q;
+        const query = req.query.q?.trim();
         if(!query){
             return res.status(400).json({error:'Query parameter is required'})
         }
+        const cacheKey = query.toLowerCase();
 
         // 1. Check if the query results are already cached
-    const cachedData = youtubeCache.get(query);
+    const cachedData = youtubeCache.get(cacheKey);
     if (cachedData) {
       console.log(`[Cache Hit] Serving results for: "${query}"`);
       return res.json({ source: 'cache', videos: cachedData });
@@ -22,7 +23,7 @@ const searchVid = async(req,res)=>{
     console.log(`[Cache Miss] Querying YouTube API for: "${query}"`);
         
         // 2. Perform the initial YouTube search
-        const response = await axios.get('https://googleapis.com',{
+        const response = await axios.get('https://googleapis.com/youtube/v3/search',{
             params: {
                 part:'snippet',
                 q:query,
@@ -41,7 +42,7 @@ const searchVid = async(req,res)=>{
         const videoIds = items.map(item=>item.id.videoId).join(',');
 
         //request duration details from videos endpoint
-        const detailsResponse = await axios.get('https://googleapis.com',{
+        const detailsResponse = await axios.get('https://googleapis.com/youtube/v3/videos',{
             params: {
                 part:'contentDetails',
                 id:videoIds,
@@ -82,12 +83,12 @@ function parseISO8601Duration(durationString) {
             title:item.snippet.title,
             channelTitle:item.snippet.channelTitle,
             thumbnail:item.snippet.thumbnails.high.url,
-            duration:parseISO8601Duration(durationMap[id] || 'PT0S') || "Unkown"
+            duration:durationMap[id]?parseISO8601Duration(durationMap[id]) : "Unkown"
             }
         });
 
         // 6. Save the formatted result to cache for 10 minutes
-        youtubeCache.set(query, formattedVideos);
+        youtubeCache.set(cacheKey, formattedVideos);
 
         //send to client
         res.json({source: 'api', videos:formattedVideos});
