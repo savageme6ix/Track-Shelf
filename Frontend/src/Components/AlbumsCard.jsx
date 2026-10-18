@@ -12,8 +12,14 @@ export default function AlbumCard({
   const [query, setQuery] = useState([""]);
   const [youtubeResult,setYoutubeResult] = useState([]);
   async function searchYoutube() {
+    //generating a query for every track
     while (query.length !== tracks.length) {
-      setQuery(`${tracks[0].name} ${tracks[0].artist}`);
+      tracks.forEach((track)=>{
+        setQuery(`${track.name} ${track.artist}`);
+      })
+    }
+    //Do a search for each generated query
+    query.forEach(async (query)=>{
       try {
         const response = await axios.get(
           `http://127.0.0.1:3000/api/youtube/search?q=${encodeURIComponent(query)}`,
@@ -27,7 +33,8 @@ export default function AlbumCard({
       } catch (error) {
         console.log(error.status, error.message, "Error");
       }
-    }
+    })
+      
   }
   return (
     <section className="card playlist-card">
