@@ -79,6 +79,7 @@ function App() {
       <div className="grid">
         <AlbumCard
           src={playlistImage}
+          tracks={tracks}
           title={playlist?.name || 'Your playlist'}
           subtitle={playlist ? `${playlist.totalTracks} total tracks` : 'Import a playlist to see its details'}
           onImageLoad={processImage}
