@@ -9,6 +9,7 @@ import loginRoute from "./Routes/loginRoute.js";
 import callbackRoute from "./Routes/callbackRoute.js"
 import refreshTokenRoute from './Routes/refreshTokenRoute.js';
 import meRoute from './Routes/meRoute.js';
+import searchRoute from './Routes/searchRoute.js';
 app.use(cors({
   origin: "http://127.0.0.1:5173",
   credentials: true,
@@ -32,6 +33,7 @@ app.use("/api/spotify",loginRoute);
 app.use("/api/spotify",callbackRoute);
 app.use("/api/spotify",refreshTokenRoute);
 app.use("/api/spotify",meRoute);
+app.use("/api/spotify", searchRoute);
 
 app.listen(PORT, ()=>{
     console.log("Listening on port", PORT)
