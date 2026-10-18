@@ -2,16 +2,16 @@ import "dotenv/config";
 import NodeCache from 'node-cache';
 import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-if(!YOUTUBE_API_KEY){
-    return res.status(401).json({
-        error:"Unaouthorized",
-        message:"Missing Yt-API key"
-    });
-}
 // Initialize Cache: Standard Time-To-Live (stdTTL) is 600 seconds (10 minutes)
 const youtubeCache = new NodeCache({stdTTL:600,checkperiod:120});
 
 const searchVid = async(req,res)=>{
+    if(!YOUTUBE_API_KEY){
+      return res.status(401).json({
+        error:"Unaouthorized",
+        message:"Missing Yt-API key"
+        });
+    }
     try{
         const query = req.query.q?.trim();
         if(!query){

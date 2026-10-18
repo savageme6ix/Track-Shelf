@@ -1,12 +1,7 @@
 import axios from "axios";
 export default function AlbumCard({ src,tracks, title, subtitle, onImageLoad, isImported }) {
+  const noTracks = !tracks || tracks.length === 0;
   async function searchYoutube(){
-    if(!tracks){
-      return res.status(204).json({
-        error:"Missing Content",
-        message:"No Tracks"
-      })
-    }
     let searchQuery = `${tracks[0].name} ${tracks[0].artist}`;
     try{
       const response = await axios.get(`http://127.0.0.1:3000/api/youtube/search?q=${encodeURIComponent(searchQuery)}`,
@@ -36,7 +31,7 @@ export default function AlbumCard({ src,tracks, title, subtitle, onImageLoad, is
           <h2 className="artist">{title}</h2>
           <p className="subtitle">{subtitle}</p>
         </div>
-        {isImported && <button className="imported-check" aria-label="Match to Youtube" onClick={searchYoutube}>Track</button>}
+        {isImported && <button className="imported-check" aria-label="Match to Youtube" onClick={searchYoutube} disabled={noTracks}>Track</button>}
       </div>
     </section>
   );
