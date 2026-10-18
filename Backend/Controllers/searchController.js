@@ -23,7 +23,7 @@ const searchVid = async(req,res)=>{
     console.log(`[Cache Miss] Querying YouTube API for: "${query}"`);
         
         // 2. Perform the initial YouTube search
-        const response = await axios.get('https://googleapis.com/youtube/v3/search',{
+        const response = await axios.get('https://www.googleapis.com/youtube/v3/search',{
             params: {
                 part:'snippet',
                 q:query,
@@ -42,7 +42,7 @@ const searchVid = async(req,res)=>{
         const videoIds = items.map(item=>item.id.videoId).join(',');
 
         //request duration details from videos endpoint
-        const detailsResponse = await axios.get('https://googleapis.com/youtube/v3/videos',{
+        const detailsResponse = await axios.get('https://www.googleapis.com/youtube/v3/videos',{
             params: {
                 part:'contentDetails',
                 id:videoIds,
