@@ -1,6 +1,10 @@
 import "dotenv/config";
+import NodeCache from 'node-cache';
 import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+// Initialize Cache: Standard Time-To-Live (stdTTL) is 600 seconds (10 minutes)
+const youtubeCache = new NodeCache({stdTTL:600,checkperiod:120});
+
 const searchVid = async(req,res)=>{
     try{
         const query = req.query.q;
@@ -8,6 +12,16 @@ const searchVid = async(req,res)=>{
             return res.status(400).json({error:'Query parameter is required'})
         }
 
+        // 1. Check if the query results are already cached
+    const cachedData = youtubeCache.get(query);
+    if (cachedData) {
+      console.log(`[Cache Hit] Serving results for: "${query}"`);
+      return res.json({ source: 'cache', videos: cachedData });
+    }
+
+    console.log(`[Cache Miss] Querying YouTube API for: "${query}"`);
+        
+        // 2. Perform the initial YouTube search
         const response = await axios.get('https://googleapis.com',{
             params: {
                 part:'snippet',
@@ -18,7 +32,12 @@ const searchVid = async(req,res)=>{
             }
         });
 
-        const formattedVideos = response.data.items.map(item=>({
+        const items = response.data.items || [];
+        if(items.length === 0){
+            return res.json({source:'api', videos:[]});
+        }
+
+        const formattedVideos = items.map(item=>({
             videoId:item.id.videoId,
             title:item.snippet.title,
             channelTitle:item.snippet.channelTitle,
