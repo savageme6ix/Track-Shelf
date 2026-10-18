@@ -33,7 +33,7 @@ app.use("/api/spotify",loginRoute);
 app.use("/api/spotify",callbackRoute);
 app.use("/api/spotify",refreshTokenRoute);
 app.use("/api/spotify",meRoute);
-app.use("/api/spotify", searchRoute);
+app.use("/api/youtube", searchRoute);
 
 app.listen(PORT, ()=>{
     console.log("Listening on port", PORT)

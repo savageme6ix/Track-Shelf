@@ -3,7 +3,7 @@ export default function AlbumCard({ src,tracks, title, subtitle, onImageLoad, is
   async function searchYoutube(){
     let searchQuery = `${tracks[0].name} ${tracks[0].artist}`;
     try{
-      const response = await axios.get(`http://127.0.0.1:3000/api/spotify/search?q=${encodeURIComponent(searchQuery)}`,
+      const response = await axios.get(`http://127.0.0.1:3000/api/youtube/search?q=${encodeURIComponent(searchQuery)}`,
       {withCredentials:true}
     )
       const youtubeResult = response.data?.videos;
@@ -30,7 +30,7 @@ export default function AlbumCard({ src,tracks, title, subtitle, onImageLoad, is
           <h2 className="artist">{title}</h2>
           <p className="subtitle">{subtitle}</p>
         </div>
-        {isImported && <button className="imported-check" aria-label="Playlist imported" onClick={searchYoutube}>Track</button>}
+        {isImported && <button className="imported-check" aria-label="Match to Youtube" onClick={searchYoutube}>Track</button>}
       </div>
     </section>
   );

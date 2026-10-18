@@ -2,6 +2,12 @@ import "dotenv/config";
 import NodeCache from 'node-cache';
 import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+if(!YOUTUBE_API_KEY){
+    return res.status(401).json({
+        error:"Unaouthorized",
+        message:"Missing Yt-API key"
+    });
+}
 // Initialize Cache: Standard Time-To-Live (stdTTL) is 600 seconds (10 minutes)
 const youtubeCache = new NodeCache({stdTTL:600,checkperiod:120});
 
@@ -82,8 +88,8 @@ function parseISO8601Duration(durationString) {
             videoId:id,
             title:item.snippet.title,
             channelTitle:item.snippet.channelTitle,
-            thumbnail:item.snippet.thumbnails.high.url,
-            duration:durationMap[id]?parseISO8601Duration(durationMap[id]) : "Unkown"
+            thumbnail:item.snippet.thumbnails.high.url || "undefined",
+            duration:durationMap[id]?parseISO8601Duration(durationMap[id]) : "Unknown"
             }
         });
 
