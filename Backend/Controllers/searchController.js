@@ -37,16 +37,48 @@ const searchVid = async(req,res)=>{
             return res.json({source:'api', videos:[]});
         }
 
-        const formattedVideos = items.map(item=>({
-            videoId:item.id.videoId,
+        //Extract videoIDs into a comma separated string "id1,id2,id3"
+        const videoIds = items.map(item=>item.id.videoId).join(',');
+
+        //request duration details from videos endpoint
+        const detailsResponse = await axios.get('https://googleapis.com',{
+            params: {
+                part:'contentDetails',
+                id:videoIds,
+                key:YOUTUBE_API_KEY
+            }
+        });
+
+        // Create a quick lookup map of { videoId: duration }
+        // Note: YouTube returns duration in ISO 8601 format (e.g., "PT14M32S" for 14m 32s)
+        const durationMap = {};
+        detailsResponse.data.items.forEach(item=>{
+            durationMap[item.id]=item.contentDetails.duration;
+        })
+
+        const formattedVideos = items.map(item=>{
+            const id = item.id.videoId;
+            return{
+            videoId:id,
             title:item.snippet.title,
             channelTitle:item.snippet.channelTitle,
-            thumbnail:item.snippet.thumbnails.high.url
-        }));
+            thumbnail:item.snippet.thumbnails.high.url,
+            duration:durationMap[id] || "Unkown"
+            }
+        });
+
+        // 6. Save the formatted result to cache for 10 minutes
+        youtubeCache.set(query, formattedVideos);
 
         //send to client
         res.json({videos:formattedVideos});
-    }catch(err){
-
+    }catch(error){
+         console.error('API Error:', error.response?.data || error.message);
+        res.status(error.response?.status || 500).json({
+         error: 'Failed to fetch search results.',
+         details: error.response?.data || error.message
+     });
     }
 }
+
+export default searchVid;
