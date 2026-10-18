@@ -160,7 +160,7 @@ p { color: var(--muted); margin: 8px 0 0 0; }
 .playlist-card .subtitle { color: rgba(255,255,255,.78); }
 
 .playlist-tag { position: absolute; z-index: 1; top: 14px; left: 14px; padding: 7px 10px; border-radius: 999px; background: rgba(0,0,0,.48); backdrop-filter: blur(10px); font-size: 10px; letter-spacing: .12em; font-weight: 800; }
-.imported-check { flex: 0 0 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; color: #101010; background: var(--accent); font-weight: 900; }
+.imported-check { flex: 0 0 34px; height: 34px; display: grid; place-items: center; border-radius: 5px; color: #101010; background: var(--accent); font-weight: 900; padding: 10px; border: none; cursor: pointer;}
 
 .panel {
   min-width: 0;

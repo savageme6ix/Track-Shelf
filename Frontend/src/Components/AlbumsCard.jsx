@@ -14,7 +14,7 @@ export default function AlbumCard({ src, title, subtitle, onImageLoad, isImporte
           <h2 className="artist">{title}</h2>
           <p className="subtitle">{subtitle}</p>
         </div>
-        {isImported && <span className="imported-check" aria-label="Playlist imported">✓</span>}
+        {isImported && <button className="imported-check" aria-label="Playlist imported">Track</button>}
       </div>
     </section>
   );
