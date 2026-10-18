@@ -30,7 +30,7 @@ export default function AlbumCard({
           <button
             className="imported-check"
             aria-label="Match to Youtube"
-            onClick={searchYoutube(tracks)}
+            onClick={() => searchYoutube(tracks)}
             disabled={noTracks}
           >
             Track
