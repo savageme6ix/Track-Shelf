@@ -56,6 +56,25 @@ const searchVid = async(req,res)=>{
             durationMap[item.id]=item.contentDetails.duration;
         })
 
+    // const durationMap = {
+    //     "dQw4w9WgXcQ": "PT14M32S",
+    //     "eBGIQ7ZuuiU": "PT4M12S"
+    // };
+
+function parseISO8601Duration(durationString) {
+    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+    const matches = durationString.match(regex);
+  
+    const hours = matches[1] ? parseInt(matches[1]) : 0;
+    const minutes = matches[2] ? parseInt(matches[2]) : 0;
+    const seconds = matches[3] ? parseInt(matches[3]) : 0;
+
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
         const formattedVideos = items.map(item=>{
             const id = item.id.videoId;
             return{
@@ -63,7 +82,7 @@ const searchVid = async(req,res)=>{
             title:item.snippet.title,
             channelTitle:item.snippet.channelTitle,
             thumbnail:item.snippet.thumbnails.high.url,
-            duration:durationMap[id] || "Unkown"
+            duration:parseISO8601Duration(durationMap[id] || 'PT0S') || "Unkown"
             }
         });
 
@@ -71,7 +90,7 @@ const searchVid = async(req,res)=>{
         youtubeCache.set(query, formattedVideos);
 
         //send to client
-        res.json({videos:formattedVideos});
+        res.json({source: 'api', videos:formattedVideos});
     }catch(error){
          console.error('API Error:', error.response?.data || error.message);
         res.status(error.response?.status || 500).json({
