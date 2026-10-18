@@ -1,6 +1,12 @@
 import axios from "axios";
 export default function AlbumCard({ src,tracks, title, subtitle, onImageLoad, isImported }) {
   async function searchYoutube(){
+    if(!tracks){
+      return res.status(204).json({
+        error:"Missing Content",
+        message:"No Tracks"
+      })
+    }
     let searchQuery = `${tracks[0].name} ${tracks[0].artist}`;
     try{
       const response = await axios.get(`http://127.0.0.1:3000/api/youtube/search?q=${encodeURIComponent(searchQuery)}`,
