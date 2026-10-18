@@ -8,24 +8,30 @@ export default function useYoutubeSearch() {
 
   async function searchYoutube(tracks) {
     const queries = tracks.map(
-      track => `${track.name} ${track.artist}`
+      (track) => `${track.name} ${track.artist}`
     );
 
     setQuery(queries);
 
     try {
-      const results = await Promise.all(
-        queries.map(async (searchQuery) => {
-          const response = await axios.get(
-            `http://127.0.0.1:3000/api/youtube/search?q=${encodeURIComponent(searchQuery)}`,
-            { withCredentials: true }
-          );
+      const resultsByTrack = [];
 
-          return response.data?.videos ?? [];
-        })
-      );
+      for (const track of tracks) {
+        const searchQuery = `${track.name} ${track.artist}`;
 
-      setYoutubeResult(results.flat());
+        const response = await axios.get(
+          `http://127.0.0.1:3000/api/youtube/search?q=${encodeURIComponent(searchQuery)}`,
+          { withCredentials: true }
+        );
+
+        resultsByTrack.push({
+          trackId: track.id,
+          videos: response.data?.videos ?? [],
+        });
+      }
+
+      setYoutubeResult(resultsByTrack);
+
     } catch (error) {
       console.error("YouTube search failed:", error);
     }
@@ -34,6 +40,6 @@ export default function useYoutubeSearch() {
   return {
     query,
     youtubeResult,
-    searchYoutube
+    searchYoutube,
   };
 }
