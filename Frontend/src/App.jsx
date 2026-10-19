@@ -3,6 +3,7 @@ import axios from 'axios';
 import Header from './Components/Header';
 import AlbumCard from './Components/AlbumsCard';
 import ThemePanel from './Components/ThemePanel';
+import MatchProgress from './Components/MatchProgress';
 import { PLACEHOLDER_SRC } from './utils/placeholder';
 import { useAlbumTheme } from './utils/useAlbumTheme';
 import useYoutubeSearch from './utils/youtubeSearch';
@@ -19,7 +20,10 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [trackPage, setTrackPage] = useState(0);
   const { theme, processImage } = useAlbumTheme();
-  const { youtubeResult, searchYoutube } = useYoutubeSearch();
+  const { matchingJob, searchYoutube, resumeYoutube } = useYoutubeSearch();
+  const youtubeResult = playlist && matchingJob?.playlistId === playlist.id
+    ? matchingJob.results
+    : [];
 
   const importPlaylist = async (url) => {
     setIsLoading(true);
@@ -79,15 +83,28 @@ function App() {
       </p>
 
       <div className="grid">
-        <AlbumCard
-          src={playlistImage}
-          tracks={tracks}
-          title={playlist?.name || 'Your playlist'}
-          subtitle={playlist ? `${playlist.totalTracks} total tracks` : 'Import a playlist to see its details'}
-          onImageLoad={processImage}
-          isImported={Boolean(playlist)}
-          onMatch={() => searchYoutube(tracks)}
-        />
+        <div className="playlist-column">
+          <AlbumCard
+            src={playlistImage}
+            tracks={tracks}
+            title={playlist?.name || 'Your playlist'}
+            subtitle={playlist ? `${playlist.totalTracks} total tracks` : 'Import a playlist to see its details'}
+            onImageLoad={processImage}
+            isImported={Boolean(playlist)}
+            onMatch={() => {
+              if (playlist && !matchingJob?.isRunning && matchingJob?.playlistId !== playlist.id) {
+                searchYoutube(tracks, playlist.id);
+              }
+            }}
+            matchDisabled={matchingJob?.isRunning || matchingJob?.playlistId === playlist?.id}
+          />
+          <MatchProgress
+            playlist={playlist}
+            job={matchingJob}
+            onStart={() => searchYoutube(tracks, playlist.id)}
+            onResume={resumeYoutube}
+          />
+        </div>
         <ThemePanel
           theme={theme}
           tracks={tracks}

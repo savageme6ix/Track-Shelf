@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 export default function AlbumCard({
   src,
   tracks,
@@ -7,6 +6,7 @@ export default function AlbumCard({
   onImageLoad,
   isImported,
   onMatch,
+  matchDisabled = false,
 }) {
   const noTracks = !tracks || tracks.length === 0;
   return (
@@ -31,9 +31,9 @@ export default function AlbumCard({
             className="imported-check"
             aria-label="Match to Youtube"
             onClick={onMatch}
-            disabled={noTracks}
+            disabled={noTracks || matchDisabled}
           >
-            Track
+            Match
           </button>
         )}
       </div>

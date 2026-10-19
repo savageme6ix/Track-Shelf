@@ -4,6 +4,33 @@ import { matchEngine } from "../Utils/matchEngine.js";
 import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
+function nextQuotaResetAt() {
+  const timeZone = "America/Los_Angeles";
+  const dateKey = (date) => new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date).filter((part) => part.type !== "literal").map((part) => part.value).join("-");
+  const now = Date.now();
+  const today = dateKey(new Date(now));
+  let low = now;
+  let high = now + 36 * 60 * 60 * 1000;
+
+  while (dateKey(new Date(high)) === today) high += 12 * 60 * 60 * 1000;
+  while (high - low > 1000) {
+    const middle = Math.floor((low + high) / 2);
+    if (dateKey(new Date(middle)) === today) low = middle;
+    else high = middle;
+  }
+  return new Date(high).toISOString();
+}
+
+function isDailyQuotaError(error) {
+  const reasons = error.response?.data?.error?.errors?.map((item) => item.reason) ?? [];
+  return reasons.some((reason) => ["quotaExceeded", "dailyLimitExceeded"].includes(reason));
+}
+
 function parseISO8601Duration(durationString) {
   const matches = durationString.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!matches) return null;
@@ -103,6 +130,13 @@ const searchVid = async(req,res)=>{
         res.json({source: 'api', ...bestCandidate});
     }catch(error){
          console.error('API Error:', error.response?.data || error.message);
+        if (isDailyQuotaError(error)) {
+          return res.status(429).json({
+            error: "YouTube daily quota reached.",
+            quotaExceeded: true,
+            resetAt: nextQuotaResetAt(),
+          });
+        }
         res.status(error.response?.status || 500).json({
          error: 'Failed to fetch search results.',
          details: error.response?.data || error.message

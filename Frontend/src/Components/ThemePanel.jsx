@@ -51,7 +51,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
             const match = resultsById[track.id];
             const isMatched = match?.bestMatch && match.confidence >= 0.8;
             const possibleMatch = match?.bestMatch && match.confidence >= 0.4 && match.confidence < 0.8;
-            const noMatch = match?.bestMatch && match.confidence < 0.4;
+            const noMatch = match && (!match.bestMatch || match.confidence < 0.4);
 
             return(
             <article className="track-item" key={`${track.id}-${firstTrackIndex + index}`}>
