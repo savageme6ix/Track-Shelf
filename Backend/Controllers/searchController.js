@@ -1,9 +1,21 @@
 import "dotenv/config";
 import NodeCache from 'node-cache';
+import { matchEngine } from "../Utils/matchEngine.js";
 import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 // Initialize Cache: Standard Time-To-Live (stdTTL) is 600 seconds (10 minutes)
 const youtubeCache = new NodeCache({stdTTL:600,checkperiod:120});
+
+function parseISO8601Duration(durationString) {
+  const matches = durationString.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!matches) return null;
+
+  const hours = matches[1] ? parseInt(matches[1]) : 0;
+  const minutes = matches[2] ? parseInt(matches[2]) : 0;
+  const seconds = matches[3] ? parseInt(matches[3]) : 0;
+
+  return hours * 3600 + minutes * 60 + seconds;
+}
 
 const searchVid = async(req,res)=>{
     if(!YOUTUBE_API_KEY){
@@ -15,11 +27,13 @@ const searchVid = async(req,res)=>{
     try{
         const {name,artist,duration} = req.query;
 
-        const query = `${name} ${artist}`;
-        if(!query){
-            return res.status(400).json({error:'Query parameter is required'})
+        if(!name || !artist){
+            return res.status(400).json({error:'name and artist required'})
         }
-        const cacheKey = query.toLowerCase();
+        const query = `${name} ${artist}`;
+
+        const durationSec = Math.round(Number(duration) / 1000); // Spotify duration_ms → seconds
+        const cacheKey = `${name}|${artist}|${durationSec}`.toLowerCase();;
 
         // 1. Check if the query results are already cached
     const cachedData = youtubeCache.get(cacheKey);
@@ -36,7 +50,7 @@ const searchVid = async(req,res)=>{
                 part:'snippet',
                 q:query,
                 type:'video',
-                maxResults:5,
+                maxResults:8,
                 key:YOUTUBE_API_KEY
             }
         });
@@ -70,20 +84,6 @@ const searchVid = async(req,res)=>{
     //     "eBGIQ7ZuuiU": "PT4M12S"
     // };
 
-function parseISO8601Duration(durationString) {
-    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
-    const matches = durationString.match(regex);
-  
-    const hours = matches[1] ? parseInt(matches[1]) : 0;
-    const minutes = matches[2] ? parseInt(matches[2]) : 0;
-    const seconds = matches[3] ? parseInt(matches[3]) : 0;
-
-    if (hours > 0) {
-        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
         const formattedVideos = items.map(item=>{
             const id = item.id.videoId;
             return{
@@ -91,11 +91,10 @@ function parseISO8601Duration(durationString) {
             title:item.snippet.title,
             channelTitle:item.snippet.channelTitle,
             thumbnail:item.snippet.thumbnails.high.url || "undefined",
-            duration:durationMap[id]?parseISO8601Duration(durationMap[id]) : "Unknown"
+            duration:durationMap[id]?parseISO8601Duration(durationMap[id]) : null
             }
         });
         
-        const durationSec = Math.round(Number(duration)/1000)// Spotify duration_ms → seconds
         const spotifyTrack = {name,artist,durationSec}
         const bestCandidate = matchEngine(formattedVideos,spotifyTrack);
 

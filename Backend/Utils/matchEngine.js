@@ -22,9 +22,11 @@ function scoreVideo(video,{name,artist,durationSec}){
     if(channel.includes(spArtist)) score += 10;
 
     //duration: full points within 3s, partial within 10s
+    if(video.durationSec != null){
     const diff = Math.abs(video.durationSec - durationSec);
     if(diff<=3) score += 5;
     else if(diff<= 10) score +=2;
+    }
 
     //penalize unwanted versions, unless the spotify track itself has that word
     for(const word of BAD_WORDS){

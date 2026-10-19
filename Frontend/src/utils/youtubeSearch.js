@@ -32,7 +32,7 @@ export default function useYoutubeSearch() {
 
         resultsByTrack.push({
           trackId: track.id,
-          videos: response.data?.videos ?? [],
+          videos: response.data?.bestCandidate ?? [],
         });
       }
 
