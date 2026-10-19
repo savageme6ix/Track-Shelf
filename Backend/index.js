@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { loadCache } from './Utils/fileCache.js';
 import express from "express";
 import session from "express-session";
 import cors from "cors";
@@ -35,6 +36,7 @@ app.use("/api/spotify",refreshTokenRoute);
 app.use("/api/spotify",meRoute);
 app.use("/api/youtube", searchRoute);
 
+await loadCache();
 app.listen(PORT, ()=>{
     console.log("Listening on port", PORT)
 });

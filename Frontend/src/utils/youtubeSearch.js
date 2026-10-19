@@ -11,7 +11,7 @@ export default function useYoutubeSearch() {
 
   const resultsByTrack = [];
 
-  for (const track of tracks) {
+  for (const track of tracks.slice(0,1)) {
     try {
       const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
         params: {

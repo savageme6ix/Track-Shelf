@@ -1,10 +1,8 @@
 import "dotenv/config";
-import NodeCache from 'node-cache';
+import { getCached, setCached } from "../Utils/fileCache.js";
 import { matchEngine } from "../Utils/matchEngine.js";
 import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-// Initialize Cache: Standard Time-To-Live (stdTTL) is 600 seconds (10 minutes)
-const youtubeCache = new NodeCache({stdTTL:60*60*60,checkperiod:120});
 
 function parseISO8601Duration(durationString) {
   const matches = durationString.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
@@ -37,7 +35,7 @@ const searchVid = async(req,res)=>{
         const cacheKey = `${name}|${artist}|${durationSec}`.toLowerCase();
 
         // 1. Check if the query results are already cached
-    const cachedData = youtubeCache.get(cacheKey);
+    const cachedData = getCached(cacheKey);
     if (cachedData) {
       console.log(`[Cache Hit] Serving results for: "${query}"`);
       return res.json({ source: 'cache', ...cachedData});
@@ -98,8 +96,8 @@ const searchVid = async(req,res)=>{
         
         const bestCandidate = matchEngine(formattedVideos,spotifyTrack);
 
-        // 6. Save the formatted result to cache for 10 minutes
-        youtubeCache.set(cacheKey, bestCandidate);
+        // 6. Save the formatted result to cache
+        await setCached(cacheKey, bestCandidate);
 
         //send to client
         res.json({source: 'api', ...bestCandidate});
