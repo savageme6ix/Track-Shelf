@@ -23,7 +23,8 @@ export default function useYoutubeSearch() {
           {
             params:{
               name:track.name,
-              artist:track.artist
+              artist:track.artist,
+              duration: track.durationMs
             }
           },
           { withCredentials: true }
