@@ -17,10 +17,15 @@ export default function useYoutubeSearch() {
       const resultsByTrack = [];
 
       for (const track of tracks) {
-        const searchQuery = `${track.name} ${track.artist}`;
 
         const response = await axios.get(
-          `http://127.0.0.1:3000/api/youtube/search?q=${encodeURIComponent(searchQuery)}`,
+          `http://127.0.0.1:3000/api/youtube/search`,
+          {
+            params:{
+              name:track.name,
+              artist:track.artist
+            }
+          },
           { withCredentials: true }
         );
 

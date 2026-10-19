@@ -13,7 +13,8 @@ const searchVid = async(req,res)=>{
         });
     }
     try{
-        const query = req.query.q?.trim();
+        const {name,artist} = req.query;
+        const query = `${name} ${artist}`;
         if(!query){
             return res.status(400).json({error:'Query parameter is required'})
         }
@@ -92,6 +93,8 @@ function parseISO8601Duration(durationString) {
             duration:durationMap[id]?parseISO8601Duration(durationMap[id]) : "Unknown"
             }
         });
+
+        const bestCandidate = matchEngine(formattedVideos,query)
 
         // 6. Save the formatted result to cache for 10 minutes
         youtubeCache.set(cacheKey, formattedVideos);
