@@ -9,9 +9,6 @@ export default function AlbumCard({
   onMatch,
 }) {
   const noTracks = !tracks || tracks.length === 0;
-  useEffect(() => {
-  console.log("youtubeResult changed:", youtubeResult);
-}, [youtubeResult]);
   return (
     <section className="card playlist-card">
       <img

@@ -53,6 +53,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
             const possibleMatch = match?.bestMatch && match.confidence >= 0.4 && match.confidence < 0.8;
             const noMatch = match?.bestMatch && match.confidence < 0.4;
 
+            return(
             <article className="track-item" key={`${track.id}-${firstTrackIndex + index}`}>
               {track.image ? (
                 <img className="track-art" src={track.image} alt="" loading="lazy" />
@@ -69,6 +70,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
               </div>
               <span className="track-index">{String(firstTrackIndex + index + 1).padStart(2, '0')}</span>
             </article>
+            )
           })}
           {pageCount > 1 && (
             <nav className="track-pagination" aria-label="Track pages">

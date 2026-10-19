@@ -163,6 +163,7 @@ p { color: var(--muted); margin: 8px 0 0 0; }
 .imported-check { flex: 0 0 34px; height: 34px; display: grid; place-items: center; border-radius: 5px; color: #101010; background: var(--accent); font-weight: 900; padding: 10px; border: none; cursor: pointer;}
 
 .possible-badge { color: #facc15; font-size: 0.75rem; font-weight: 600; }
+.matched-badge { color: #4ade80; font-size: 0.75rem; font-weight: 600; }
 .no-badge { color: #f87171; font-size: 0.75rem; font-weight: 600; }
 
 .panel {
