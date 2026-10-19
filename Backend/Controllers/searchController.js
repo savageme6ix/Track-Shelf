@@ -19,7 +19,7 @@ function parseISO8601Duration(durationString) {
 
 const searchVid = async(req,res)=>{
     if(!YOUTUBE_API_KEY){
-      return res.status(401).json({
+      return res.status(500).json({
         error:"Unaouthorized",
         message:"Missing Yt-API key"
         });
@@ -27,19 +27,20 @@ const searchVid = async(req,res)=>{
     try{
         const {name,artist,duration} = req.query;
 
-        if(!name || !artist){
+        if(!name || !artist || !Number.isFinite(Number(duration))){
             return res.status(400).json({error:'name and artist required'})
         }
         const query = `${name} ${artist}`;
 
         const durationSec = Math.round(Number(duration) / 1000); // Spotify duration_ms → seconds
-        const cacheKey = `${name}|${artist}|${durationSec}`.toLowerCase();;
+        const spotifyTrack = {name,artist,durationSec}
+        const cacheKey = `${name}|${artist}|${durationSec}`.toLowerCase();
 
         // 1. Check if the query results are already cached
     const cachedData = youtubeCache.get(cacheKey);
     if (cachedData) {
       console.log(`[Cache Hit] Serving results for: "${query}"`);
-      return res.json({ source: 'cache', videos: cachedData });
+      return res.json({ source: 'cache', ...cachedData});
     }
 
     console.log(`[Cache Miss] Querying YouTube API for: "${query}"`);
@@ -57,7 +58,7 @@ const searchVid = async(req,res)=>{
 
         const items = response.data.items || [];
         if(items.length === 0){
-            return res.json({source:'api', videos:[]});
+            return res.json({source:'api', ...matchEngine([],{name,artist,durationSec})});
         }
 
         //Extract videoIDs into a comma separated string "id1,id2,id3"
@@ -90,12 +91,11 @@ const searchVid = async(req,res)=>{
             videoId:id,
             title:item.snippet.title,
             channelTitle:item.snippet.channelTitle,
-            thumbnail:item.snippet.thumbnails.high.url || "undefined",
-            duration:durationMap[id]?parseISO8601Duration(durationMap[id]) : null
+            thumbnail:item.snippet.thumbnails?.high.url?? null,
+            durationSec:durationMap[id]?parseISO8601Duration(durationMap[id]) : null
             }
         });
         
-        const spotifyTrack = {name,artist,durationSec}
         const bestCandidate = matchEngine(formattedVideos,spotifyTrack);
 
         // 6. Save the formatted result to cache for 10 minutes
