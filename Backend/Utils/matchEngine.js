@@ -35,3 +35,20 @@ function scoreVideo(video,{name,artist,durationSec}){
     return Math.max(score,0);
 }
 
+export function matchEngine(formattedVideos,spotifyTrack){
+    const candidates = formattedVideos.map((video)=>{
+        const score = scoreVideo(video,spotifyTrack);
+        return{...video,score,confidence: +(score/MAX_SCORE).toFixed(2)}
+    })
+    .sort((a,b) => b.score - a.score);
+
+    const bestMatch = candidates[0] ?? null;
+
+    return{
+        spotifyTrack,
+        candidates,
+        bestMatch,
+        confidence: bestMatch ? bestMatch.confidence : 0,
+    };
+}
+
