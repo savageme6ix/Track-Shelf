@@ -27,8 +27,21 @@ function nextQuotaResetAt() {
 }
 
 function isDailyQuotaError(error) {
+  const googleError = error.response?.data?.error;
+  const reasons = googleError?.errors?.map((item) => item.reason) ?? [];
+  const message = googleError?.message ?? "";
+  return reasons.some((reason) => ["quotaExceeded", "dailyLimitExceeded"].includes(reason)) ||
+    /quota exceeded[\s\S]*(?:per day|daily)/i.test(message);
+}
+
+function isRateLimitError(error) {
   const reasons = error.response?.data?.error?.errors?.map((item) => item.reason) ?? [];
-  return reasons.some((reason) => ["quotaExceeded", "dailyLimitExceeded"].includes(reason));
+  return reasons.some((reason) => ["rateLimitExceeded", "userRateLimitExceeded", "servingLimitExceeded"].includes(reason));
+}
+
+function getRetryAfterMs(error) {
+  const seconds = Number(error.response?.headers?.["retry-after"]);
+  return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 2000;
 }
 
 function parseISO8601Duration(durationString) {
@@ -135,6 +148,13 @@ const searchVid = async(req,res)=>{
             error: "YouTube daily quota reached.",
             quotaExceeded: true,
             resetAt: nextQuotaResetAt(),
+          });
+        }
+        if (error.response?.status === 429 || isRateLimitError(error)) {
+          return res.status(429).json({
+            error: "YouTube is temporarily rate limiting requests.",
+            rateLimited: true,
+            retryAfterMs: getRetryAfterMs(error),
           });
         }
         res.status(error.response?.status || 500).json({

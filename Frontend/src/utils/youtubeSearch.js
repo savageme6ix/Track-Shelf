@@ -6,9 +6,22 @@ const STORAGE_KEY = "track-shelf.matching-job.v1";
 function readSavedJob() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    const failedResultIndex = Array.isArray(saved?.results)
+      ? saved.results.findIndex((result) => result.requestError)
+      : -1;
+    let retryIndex = null;
+    if (failedResultIndex >= 0) {
+      retryIndex = saved.results[failedResultIndex].trackIndex ?? failedResultIndex;
+      saved.results = saved.results.filter((result, index) => (result.trackIndex ?? index) < retryIndex);
+      saved.completed = retryIndex;
+      saved.nextIndex = retryIndex;
+      saved.finished = false;
+      saved.paused = false;
+      saved.error = "Earlier YouTube requests failed and were counted incorrectly. Continue matching to retry them.";
+    }
     if (saved?.isRunning) {
       saved.isRunning = false;
-      saved.nextIndex = saved.completed;
+      saved.nextIndex = retryIndex ?? saved.completed;
       saved.error = "Matching was interrupted. Continue when you're ready.";
     }
     return saved;
@@ -60,39 +73,51 @@ export default function useYoutubeSearch() {
       const track = nextJob.tracks[index];
       let result;
 
-      try {
-        const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
-          params: {
-            name: track.name,
-            artist: track.primaryArtist || track.artist,
-            duration: track.durationMs,
-          },
-          withCredentials: true,
-        });
-        result = { trackId: track.id, trackIndex: index, ...response.data };
-      } catch (error) {
-        if (error.response?.data?.quotaExceeded) {
-          const pausedJob = {
+      let attempt = 0;
+      while (!result) {
+        try {
+          const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
+            params: {
+              name: track.name,
+              artist: track.primaryArtist || track.artist,
+              duration: track.durationMs,
+            },
+            withCredentials: true,
+          });
+          result = { trackId: track.id, trackIndex: index, ...response.data };
+        } catch (error) {
+          if (error.response?.data?.quotaExceeded) {
+            const pausedJob = {
+              ...nextJob,
+              isRunning: false,
+              paused: true,
+              resetAt: error.response.data.resetAt,
+              nextIndex: index,
+              error: "YouTube's daily search quota has been reached.",
+            };
+            updateJob(pausedJob);
+            activeRun.current = false;
+            return;
+          }
+
+          if (error.response?.data?.rateLimited && attempt < 3) {
+            const waitMs = Math.max(500, Math.min(error.response.data.retryAfterMs ?? 2000, 30000));
+            attempt += 1;
+            await new Promise((resolve) => window.setTimeout(resolve, waitMs * attempt));
+            continue;
+          }
+
+          const pendingJob = {
             ...nextJob,
             isRunning: false,
-            paused: true,
-            resetAt: error.response.data.resetAt,
+            paused: false,
             nextIndex: index,
-            error: "YouTube's daily search quota has been reached.",
+            error: error.response?.data?.error || error.message || "YouTube search failed. Continue to retry this track.",
           };
-          updateJob(pausedJob);
+          updateJob(pendingJob);
           activeRun.current = false;
           return;
         }
-
-        result = {
-          trackId: track.id,
-          trackIndex: index,
-          bestMatch: null,
-          candidates: [],
-          confidence: 0,
-          requestError: error.response?.data?.error || error.message,
-        };
       }
 
       const results = [...nextJob.results, result];

@@ -3,8 +3,13 @@ import { useEffect, useState } from "react";
 function formatResetTime(value) {
   if (!value) return "after YouTube's daily quota resets";
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Africa/Nairobi",
+    timeZoneName: "short",
   }).format(new Date(value));
 }
 
@@ -96,7 +101,7 @@ export default function MatchProgress({ playlist, job, onStart, onResume }) {
       {isCurrentJob && job.paused && (
         <div className="match-paused-message">
           <p>YouTube's daily search quota has been reached. You can resume after {formatResetTime(job.resetAt)}.</p>
-          <p className="match-reset-hint">The quota resets at midnight Pacific Time. If you try before then, the search stays paused.</p>
+          <p className="match-reset-hint">YouTube resets this quota at midnight Pacific Time; this time is shown in Nairobi time (EAT). Resume before reset is blocked.</p>
         </div>
       )}
 
