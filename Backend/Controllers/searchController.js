@@ -14,6 +14,7 @@ const searchVid = async(req,res)=>{
     }
     try{
         const {name,artist,duration} = req.query;
+
         const query = `${name} ${artist}`;
         if(!query){
             return res.status(400).json({error:'Query parameter is required'})
@@ -93,14 +94,16 @@ function parseISO8601Duration(durationString) {
             duration:durationMap[id]?parseISO8601Duration(durationMap[id]) : "Unknown"
             }
         });
-
-        const bestCandidate = matchEngine(formattedVideos,name,artist,duration);
+        
+        const durationSec = Math.round(Number(duration)/1000)// Spotify duration_ms → seconds
+        const spotifyTrack = {name,artist,durationSec}
+        const bestCandidate = matchEngine(formattedVideos,spotifyTrack);
 
         // 6. Save the formatted result to cache for 10 minutes
-        youtubeCache.set(cacheKey, formattedVideos);
+        youtubeCache.set(cacheKey, bestCandidate);
 
         //send to client
-        res.json({source: 'api', videos:formattedVideos});
+        res.json({source: 'api', ...bestCandidate});
     }catch(error){
          console.error('API Error:', error.response?.data || error.message);
         res.status(error.response?.status || 500).json({
