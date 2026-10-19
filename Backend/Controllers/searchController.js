@@ -4,7 +4,7 @@ import { matchEngine } from "../Utils/matchEngine.js";
 import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 // Initialize Cache: Standard Time-To-Live (stdTTL) is 600 seconds (10 minutes)
-const youtubeCache = new NodeCache({stdTTL:600,checkperiod:120});
+const youtubeCache = new NodeCache({stdTTL:60*60*60,checkperiod:120});
 
 function parseISO8601Duration(durationString) {
   const matches = durationString.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
