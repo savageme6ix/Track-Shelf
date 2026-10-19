@@ -5,6 +5,7 @@ import AlbumCard from './Components/AlbumsCard';
 import ThemePanel from './Components/ThemePanel';
 import { PLACEHOLDER_SRC } from './utils/placeholder';
 import { useAlbumTheme } from './utils/useAlbumTheme';
+import useYoutubeSearch from './utils/youtubeSearch';
 import './index.css';
 
 const API_BASE = 'http://127.0.0.1:3000/api/spotify';
@@ -18,6 +19,7 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [trackPage, setTrackPage] = useState(0);
   const { theme, processImage } = useAlbumTheme();
+  const { youtubeResult, searchYoutube } = useYoutubeSearch();
 
   const importPlaylist = async (url) => {
     setIsLoading(true);
@@ -84,10 +86,12 @@ function App() {
           subtitle={playlist ? `${playlist.totalTracks} total tracks` : 'Import a playlist to see its details'}
           onImageLoad={processImage}
           isImported={Boolean(playlist)}
+          onMatch={() => searchYoutube(tracks)}
         />
         <ThemePanel
           theme={theme}
           tracks={tracks}
+          youtubeResult={youtubeResult}
           isLoading={isLoading}
           progress={progress}
           status={status}

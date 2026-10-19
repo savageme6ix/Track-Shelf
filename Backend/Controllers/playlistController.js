@@ -84,7 +84,8 @@ const tracks = allItems
   .map(({ item }) => ({
     id: item.id,
     name: item.name,
-    artist: item.artists.map(a => a.name).join(', '),
+    artist: item.artists.map(a => a.name).join(', '), //for display
+    primaryArtist: item.artists[0]?.name ?? '',          // for matching so that if two artists are titled on a song matching wont bring any issues
     album: item.album.name,
     durationMs: item.duration_ms,
     image: item.album.images?.[0]?.url ?? null

@@ -1,0 +1,96 @@
+{
+  "brazzier|future|189": {
+    "savedAt": 1792435046049,
+    "data": {
+      "spotifyTrack": {
+        "name": "BRAZZIER",
+        "artist": "Future",
+        "durationSec": 189
+      },
+      "candidates": [
+        {
+          "videoId": "AXpf5WEbYi4",
+          "title": "Future - BRAZZIER (Official Audio)",
+          "channelTitle": "FutureVEVO",
+          "thumbnail": "https://i.ytimg.com/vi/AXpf5WEbYi4/hqdefault.jpg",
+          "durationSec": 191,
+          "score": 35,
+          "confidence": 1
+        },
+        {
+          "videoId": "VRn-Hyb0v90",
+          "title": "Future - BRAZZIER (Official Visualizer)",
+          "channelTitle": "FutureVEVO",
+          "thumbnail": "https://i.ytimg.com/vi/VRn-Hyb0v90/hqdefault.jpg",
+          "durationSec": 189,
+          "score": 35,
+          "confidence": 1
+        },
+        {
+          "videoId": "ufWyjtt7A84",
+          "title": "Future - BRAZZIER (Official Music Video)",
+          "channelTitle": "FutureVEVO",
+          "thumbnail": "https://i.ytimg.com/vi/ufWyjtt7A84/hqdefault.jpg",
+          "durationSec": 200,
+          "score": 30,
+          "confidence": 0.86
+        },
+        {
+          "videoId": "-l_IJasmkqg",
+          "title": "Future - BRAZZIER (Lyrics)",
+          "channelTitle": "R&BHype",
+          "thumbnail": "https://i.ytimg.com/vi/-l_IJasmkqg/hqdefault.jpg",
+          "durationSec": 190,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "Rbuf2t3t4QA",
+          "title": "BRAZZIER",
+          "channelTitle": "Future - Topic",
+          "thumbnail": "https://i.ytimg.com/vi/Rbuf2t3t4QA/hqdefault.jpg",
+          "durationSec": 189,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "w5io_gjg1UE",
+          "title": "Future - BRAZZIER (Lyrics)",
+          "channelTitle": "Hip Hop/R&B Lyrics",
+          "thumbnail": "https://i.ytimg.com/vi/w5io_gjg1UE/hqdefault.jpg",
+          "durationSec": 189,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "iXDMW2VvkkU",
+          "title": "Future - BRAZZIER (Official Dance Video)",
+          "channelTitle": "Ayo & Teo",
+          "thumbnail": "https://i.ytimg.com/vi/iXDMW2VvkkU/hqdefault.jpg",
+          "durationSec": 190,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "LM9ot82lBIA",
+          "title": "Future - BRAZZIER (Lyrics)",
+          "channelTitle": "SingAlong Lyrics",
+          "thumbnail": "https://i.ytimg.com/vi/LM9ot82lBIA/hqdefault.jpg",
+          "durationSec": 200,
+          "score": 20,
+          "confidence": 0.57
+        }
+      ],
+      "bestMatch": {
+        "videoId": "AXpf5WEbYi4",
+        "title": "Future - BRAZZIER (Official Audio)",
+        "channelTitle": "FutureVEVO",
+        "thumbnail": "https://i.ytimg.com/vi/AXpf5WEbYi4/hqdefault.jpg",
+        "durationSec": 191,
+        "score": 35,
+        "confidence": 1
+      },
+      "confidence": 1
+    }
+  }
+}

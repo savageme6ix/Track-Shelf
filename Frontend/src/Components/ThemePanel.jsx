@@ -1,11 +1,20 @@
 import { toHex } from '../utils/color';
 
-export default function ThemePanel({ theme, tracks, isLoading, progress, status, trackPage, setTrackPage }) {
+export default function ThemePanel({ theme, tracks, isLoading, progress, youtubeResult,status, trackPage, setTrackPage }) {
   const { bg, accent, text, palette } = theme;
   const pageSize = 6;
   const pageCount = Math.ceil(tracks.length / pageSize);
   const firstTrackIndex = trackPage * pageSize;
   const visibleTracks = tracks.slice(firstTrackIndex, firstTrackIndex + pageSize);
+
+  //resultsById turns the array into an object keyed by track id:
+//   e.g {
+//   abc: { trackId: "abc", bestMatch: {...}, confidence: 0.94, ... },
+//   def: { trackId: "def", bestMatch: {...}, confidence: 0.6, ... },
+// }
+  const resultsById = Object.fromEntries(
+    (youtubeResult ?? []).map((r) => [r.trackId, r])
+  );
 
   return (
     <aside className="panel">
@@ -38,7 +47,12 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, status,
 
       {visibleTracks.length > 0 ? (
         <div className="track-list">
-          {visibleTracks.map((track, index) => (
+          {visibleTracks.map((track, index) => {
+            const match = resultsById[track.id];
+            const isMatched = match?.bestMatch && match.confidence >= 0.8;
+            const possibleMatch = match?.bestMatch && match.confidence >= 0.4 && match.confidence < 0.8;
+            const noMatch = match?.bestMatch && match.confidence < 0.4;
+
             <article className="track-item" key={`${track.id}-${firstTrackIndex + index}`}>
               {track.image ? (
                 <img className="track-art" src={track.image} alt="" loading="lazy" />
@@ -47,11 +61,15 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, status,
               )}
               <div className="track-copy">
                 <h3 title={track.name}>{track.name}</h3>
-                <p title={track.artist}>{track.artist}</p>
+                <p title={track.artist}>{track.artist} 
+                  {isMatched && <span className="matched-badge"> · matched</span>}
+                  {possibleMatch && <span className="possible-badge"> ·⚠️ possible match</span>}
+                  {noMatch && <span className="no-badge"> · no match</span>}
+                </p>
               </div>
               <span className="track-index">{String(firstTrackIndex + index + 1).padStart(2, '0')}</span>
             </article>
-          ))}
+          })}
           {pageCount > 1 && (
             <nav className="track-pagination" aria-label="Track pages">
               <button

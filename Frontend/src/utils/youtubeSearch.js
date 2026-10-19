@@ -16,7 +16,7 @@ export default function useYoutubeSearch() {
       const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
         params: {
           name: track.name,
-          artist: track.artist,
+          artist: track.primaryArtist,
           duration: track.durationMs,
         },
         withCredentials: true,

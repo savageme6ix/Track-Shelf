@@ -12,7 +12,7 @@ const MAX_SCORE = 10+10+10+5;
 function scoreVideo(video,{name,artist,durationSec}){
     const title = normalize(video.title);
     const channel = normalize(video.channelTitle);
-    const spName = normalize(name);
+    const spName = normalize(name.split(" - ")[0]);
     const spArtist = normalize(artist);
 
     let score = 0;

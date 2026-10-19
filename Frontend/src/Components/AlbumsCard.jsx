@@ -1,4 +1,4 @@
-import useYoutubeSearch from "../utils/youtubeSearch";
+import { useEffect } from "react";
 export default function AlbumCard({
   src,
   tracks,
@@ -6,9 +6,12 @@ export default function AlbumCard({
   subtitle,
   onImageLoad,
   isImported,
+  onMatch,
 }) {
   const noTracks = !tracks || tracks.length === 0;
-  const { query, youtubeResult, searchYoutube } = useYoutubeSearch();
+  useEffect(() => {
+  console.log("youtubeResult changed:", youtubeResult);
+}, [youtubeResult]);
   return (
     <section className="card playlist-card">
       <img
@@ -30,7 +33,7 @@ export default function AlbumCard({
           <button
             className="imported-check"
             aria-label="Match to Youtube"
-            onClick={() => searchYoutube(tracks)}
+            onClick={onMatch}
             disabled={noTracks}
           >
             Track
