@@ -8,6 +8,7 @@ import { invalidateLocalMusicIndex, musicDirectory } from "../Utils/localMusicLi
 
 const router = express.Router();
 const stagingDirectory = path.join(musicDirectory, ".track-shelf-staging");
+const youtubeCookiesFile = process.env.YOUTUBE_COOKIES_FILE?.trim();
 const jobs = new Map();
 const ALLOWED_HOSTS = new Set([
   "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtube-nocookie.com",
@@ -115,6 +116,12 @@ async function runDownload(job, url, metadata) {
       progress: true,
       embedMetadata: true,
       noEmbedChapters: true,
+      // yt-dlp leaves Node disabled by default; enabling the installed Node.js
+      // runtime lets the YouTube extractor solve its current JS challenges.
+      jsRuntimes: "node",
+      // Browser cookie decryption is unreliable on some Windows Chrome installs.
+      // Use an explicitly configured export only when the user has supplied one.
+      ...(youtubeCookiesFile ? { cookies: youtubeCookiesFile } : {}),
       postprocessorArgs: createMetadataArgs(metadata),
     }, { timeout: 20 * 60 * 1000, killSignal: "SIGTERM" });
     subprocess.stderr?.on("data", (chunk) => setProgressFromStderr(job, chunk));
@@ -135,7 +142,11 @@ async function runDownload(job, url, metadata) {
   } catch (error) {
     await cleanStagedFiles(job.id);
     job.status = "failed";
-    job.message = error.stderr?.split(/\r?\n/).filter(Boolean).slice(-2).join(" ") || "Audio download failed.";
+    const diagnostic = error.stderr?.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(-4).join(" ");
+    const requiresYouTubeLogin = /sign in to confirm your age|confirm your age/i.test(diagnostic || "");
+    job.message = requiresYouTubeLogin && !youtubeCookiesFile
+      ? "YouTube requires sign-in for this video. Export a YouTube cookies.txt file, set YOUTUBE_COOKIES_FILE in the backend environment, and restart the backend. Keep that file private."
+      : diagnostic || error.message || "Audio download failed.";
     job.completedAt = Date.now();
     scheduleJobCleanup(job);
     console.error("Download failed:", error.message);

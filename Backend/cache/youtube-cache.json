@@ -14286,5 +14286,99 @@
       },
       "confidence": 0.86
     }
+  },
+  "99 build freestyle|j. cole|233": {
+    "savedAt": 1792520252376,
+    "data": {
+      "spotifyTrack": {
+        "name": "99 Build Freestyle",
+        "artist": "J. Cole",
+        "durationSec": 233
+      },
+      "candidates": [
+        {
+          "videoId": "Hcs5DQA4ILE",
+          "title": "99 Build Freestyle",
+          "channelTitle": "J. Cole - Topic",
+          "thumbnail": "https://i.ytimg.com/vi/Hcs5DQA4ILE/hqdefault.jpg",
+          "durationSec": 234,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "w12bUd9ZnCo",
+          "title": "J. Cole | 99 Build Freestyle (Birthday Blizzard &#39;26 + Lyrics In Description)",
+          "channelTitle": "LYLESFILMS",
+          "thumbnail": "https://i.ytimg.com/vi/w12bUd9ZnCo/hqdefault.jpg",
+          "durationSec": 235,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "iaR1ETcGBrs",
+          "title": "J. Cole - 99 Build Freestyle (Lyrics) (Birthday Blizzard &#39;26)",
+          "channelTitle": "Lyrical Genius",
+          "thumbnail": "https://i.ytimg.com/vi/iaR1ETcGBrs/hqdefault.jpg",
+          "durationSec": 234,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "bTDzy62G2Zw",
+          "title": "J. Cole — &quot;99 BUILD FREESTYLE&quot; (BIRTHDAY BLIZZARD &#39;26)",
+          "channelTitle": "RAPSTAR",
+          "thumbnail": "https://i.ytimg.com/vi/bTDzy62G2Zw/hqdefault.jpg",
+          "durationSec": 234,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "ezuYP2MsSkI",
+          "title": "J. Cole - 99 BUILD FREESTYLE [Clean - Lyrics]",
+          "channelTitle": "Rotor Records",
+          "thumbnail": "https://i.ytimg.com/vi/ezuYP2MsSkI/hqdefault.jpg",
+          "durationSec": 236,
+          "score": 25,
+          "confidence": 0.71
+        },
+        {
+          "videoId": "kq-YDDws24c",
+          "title": "J. Cole - 99 Build Freestyle | REACTION MASHUP",
+          "channelTitle": "The Reactors Guild",
+          "thumbnail": "https://i.ytimg.com/vi/kq-YDDws24c/hqdefault.jpg",
+          "durationSec": 975,
+          "score": 20,
+          "confidence": 0.57
+        },
+        {
+          "videoId": "IWFBm5PO5q4",
+          "title": "J. Cole – 99 BUILD FREESTYLE (Lyrics)",
+          "channelTitle": "Morning Lyrics",
+          "thumbnail": "https://i.ytimg.com/vi/IWFBm5PO5q4/hqdefault.jpg",
+          "durationSec": 399,
+          "score": 20,
+          "confidence": 0.57
+        },
+        {
+          "videoId": "K_6pQeEK6M8",
+          "title": "J. Cole, DJ Clue - &#39;99 Build (Money, Power, Respect Freestyle)",
+          "channelTitle": "SMOKEFRMDA6IX",
+          "thumbnail": "https://i.ytimg.com/vi/K_6pQeEK6M8/hqdefault.jpg",
+          "durationSec": 234,
+          "score": 15,
+          "confidence": 0.43
+        }
+      ],
+      "bestMatch": {
+        "videoId": "Hcs5DQA4ILE",
+        "title": "99 Build Freestyle",
+        "channelTitle": "J. Cole - Topic",
+        "thumbnail": "https://i.ytimg.com/vi/Hcs5DQA4ILE/hqdefault.jpg",
+        "durationSec": 234,
+        "score": 25,
+        "confidence": 0.71
+      },
+      "confidence": 0.71
+    }
   }
 }

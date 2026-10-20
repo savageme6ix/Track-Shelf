@@ -104,7 +104,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
                     <span className="local-missing-badge"> · not in Music folder</span>
                   ))}
                 </p>
-                {downloadErrors[track.id] && <p className="track-download-error" role="alert">{downloadErrors[track.id]}</p>}
+                {downloadErrors[track.id] && <p className="track-download-error" role="alert" title={downloadErrors[track.id]}>{downloadErrors[track.id]}</p>}
               </div>
               <span className="track-index">{String(firstTrackIndex + index + 1).padStart(2, '0')}</span>
             </article>
