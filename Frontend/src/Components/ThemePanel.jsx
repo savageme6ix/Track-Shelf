@@ -76,7 +76,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
                       className={`track-download-button${isDownloading ? " is-downloading" : ""}`}
                       onClick={() => onDownload(track, youtubeCandidate)}
                       disabled={isDownloading}
-                      aria-label={`Download ${track.name} as audio`}
+                      aria-label={isDownloading ? `Downloading ${track.name}: ${trackDownloadProgress}%` : `Download ${track.name} as audio`}
                     >
                       {isDownloading && <span className="track-download-fill" style={{ width: `${trackDownloadProgress}%` }} />}
                       <span className="track-download-label">
