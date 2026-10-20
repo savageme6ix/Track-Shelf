@@ -21,6 +21,7 @@ function App() {
   const [trackPage, setTrackPage] = useState(0);
   const { theme, processImage } = useAlbumTheme();
   const { matchingJob, searchYoutube, resumeYoutube } = useYoutubeSearch();
+  // Never show a saved job's results beside a different playlist.
   const youtubeResult = playlist && matchingJob?.playlistId === playlist.id
     ? matchingJob.results
     : [];
@@ -98,6 +99,7 @@ function App() {
             }}
             matchDisabled={matchingJob?.isRunning || matchingJob?.playlistId === playlist?.id}
           />
+          {/* MatchProgress receives the saved job and the start/resume actions. */}
           <MatchProgress
             playlist={playlist}
             job={matchingJob}

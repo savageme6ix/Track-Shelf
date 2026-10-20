@@ -5,6 +5,7 @@ import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
 function nextQuotaResetAt() {
+  // YouTube daily quotas reset at midnight Pacific; the UI converts this instant to Nairobi time.
   const timeZone = "America/Los_Angeles";
   const dateKey = (date) => new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -27,6 +28,7 @@ function nextQuotaResetAt() {
 }
 
 function isDailyQuotaError(error) {
+  // Google has returned both reason codes and RESOURCE_EXHAUSTED daily-limit messages.
   const googleError = error.response?.data?.error;
   const reasons = googleError?.errors?.map((item) => item.reason) ?? [];
   const message = googleError?.message ?? "";
@@ -74,7 +76,7 @@ const searchVid = async(req,res)=>{
         const spotifyTrack = {name,artist,durationSec}
         const cacheKey = `${name}|${artist}|${durationSec}`.toLowerCase();
 
-        // 1. Check if the query results are already cached
+        // Reuse a previous match before spending another YouTube search request.
     const cachedData = getCached(cacheKey);
     if (cachedData) {
       console.log(`[Cache Hit] Serving results for: "${query}"`);
@@ -83,7 +85,7 @@ const searchVid = async(req,res)=>{
 
     console.log(`[Cache Miss] Querying YouTube API for: "${query}"`);
         
-        // 2. Perform the initial YouTube search
+        // Search gives candidate titles/channels; videos.list below supplies durations for scoring.
         const response = await axios.get('https://www.googleapis.com/youtube/v3/search',{
             params: {
                 part:'snippet',
@@ -136,7 +138,7 @@ const searchVid = async(req,res)=>{
         
         const bestCandidate = matchEngine(formattedVideos,spotifyTrack);
 
-        // 6. Save the formatted result to cache
+        // Only successful search results are cached; API errors remain retryable.
         await setCached(cacheKey, bestCandidate);
 
         //send to client

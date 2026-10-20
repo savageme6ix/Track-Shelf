@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 
 const CACHE_FILE = path.join(process.cwd(), "cache", "youtube-cache.json");
+// Keep successful candidate results for a week so repeat searches can skip YouTube API calls.
 const TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 let cache = {};
@@ -9,6 +10,7 @@ let cache = {};
 // load once when the server starts
 export async function loadCache() {
   try {
+    // Load once at server startup; getCached/setCached use this in-memory copy while running.
     const raw = await fs.readFile(CACHE_FILE, "utf-8");
     cache = JSON.parse(raw);
   } catch {

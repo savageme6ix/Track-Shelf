@@ -6,6 +6,7 @@ const STORAGE_KEY = "track-shelf.matching-job.v1";
 function readSavedJob() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    // Older runs treated API failures as unmatched; rewind to the first failure so it can be retried.
     const failedResultIndex = Array.isArray(saved?.results)
       ? saved.results.findIndex((result) => result.requestError)
       : -1;
@@ -40,10 +41,12 @@ function saveJob(job) {
 
 export default function useYoutubeSearch() {
   const [job, setJob] = useState(readSavedJob);
+  // Prevent a fast double click from starting two matching loops at once.
   const activeRun = useRef(false);
 
   const updateJob = useCallback((nextJob) => {
     setJob(nextJob);
+    // Save after each state change so closing the app doesn't lose completed tracks.
     saveJob(nextJob);
   }, []);
 
@@ -69,6 +72,7 @@ export default function useYoutubeSearch() {
 
     updateJob(nextJob);
 
+    // Do one track at a time, so a quota error pauses on the exact track that still needs work.
     for (let index = nextJob.nextIndex; index < nextJob.tracks.length; index += 1) {
       const track = nextJob.tracks[index];
       let result;
@@ -87,6 +91,7 @@ export default function useYoutubeSearch() {
           result = { trackId: track.id, trackIndex: index, ...response.data };
         } catch (error) {
           if (error.response?.data?.quotaExceeded) {
+            // Keep this track pending; quota exhaustion does not mean the song was unmatched.
             const pausedJob = {
               ...nextJob,
               isRunning: false,
@@ -101,6 +106,7 @@ export default function useYoutubeSearch() {
           }
 
           if (error.response?.data?.rateLimited && attempt < 3) {
+            // A short rate limit can clear quickly, so retry with increasing waits before stopping.
             const waitMs = Math.max(500, Math.min(error.response.data.retryAfterMs ?? 2000, 30000));
             attempt += 1;
             await new Promise((resolve) => window.setTimeout(resolve, waitMs * attempt));
@@ -114,6 +120,7 @@ export default function useYoutubeSearch() {
             nextIndex: index,
             error: error.response?.data?.error || error.message || "YouTube search failed. Continue to retry this track.",
           };
+          // A real request failure stays pending and does not inflate the unmatched count.
           updateJob(pendingJob);
           activeRun.current = false;
           return;
@@ -135,6 +142,7 @@ export default function useYoutubeSearch() {
   }, [updateJob]);
 
   const searchYoutube = useCallback((tracks, playlistId) => {
+    // Reuse saved results/progress when continuing this same playlist.
     const savedJob = job?.playlistId === playlistId ? job : null;
     return runMatching(tracks, playlistId, savedJob);
   }, [job, runMatching]);

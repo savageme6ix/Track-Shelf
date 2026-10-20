@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 function formatResetTime(value) {
   if (!value) return "after YouTube's daily quota resets";
+  // The backend sends a reset timestamp; display that instant in the user's Nairobi time.
   return new Intl.DateTimeFormat(undefined, {
     year: "numeric",
     month: "short",
@@ -15,6 +16,7 @@ function formatResetTime(value) {
 
 export default function MatchProgress({ playlist, job, onStart, onResume }) {
   const [now, setNow] = useState(Date.now());
+  // A saved job only belongs in this box when its playlist ID matches the imported playlist.
   const isCurrentJob = Boolean(job && playlist && job.playlistId === playlist.id);
   const anotherJobIsRunning = Boolean(job?.isRunning && !isCurrentJob);
   const total = isCurrentJob ? job.tracks.length : 0;
@@ -30,6 +32,7 @@ export default function MatchProgress({ playlist, job, onStart, onResume }) {
 
   if (!playlist) return null;
 
+  // Keep the activity list short; the newest completed track appears at the bottom.
   const recentRows = (job?.results ?? []).slice(-5).map((result, index, rows) => ({
     result,
     number: Math.max(0, completed - rows.length) + index + 1,
@@ -64,6 +67,7 @@ export default function MatchProgress({ playlist, job, onStart, onResume }) {
           {recentRows.length === 0 ? (
             <p className="match-activity-empty">Matching…</p>
           ) : recentRows.map(({ result, number }, index) => {
+            // Temporary debugging helper: log the candidates for the 131st playlist track.
             if (result.trackIndex === 130) {
               console.log("Candidates for song 131:", result.candidates);
             }

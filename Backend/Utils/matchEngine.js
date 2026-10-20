@@ -38,6 +38,7 @@ function scoreVideo(video,{name,artist,durationSec}){
 }
 
 export function matchEngine(formattedVideos,spotifyTrack){
+    // Score every YouTube result, then put the strongest candidate first for the UI to use.
     const candidates = formattedVideos.map((video)=>{
         const score = scoreVideo(video,spotifyTrack);
         return{...video,score,confidence: +(score/MAX_SCORE).toFixed(2)}

@@ -12,6 +12,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
 //   abc: { trackId: "abc", bestMatch: {...}, confidence: 0.94, ... },
 //   def: { trackId: "def", bestMatch: {...}, confidence: 0.6, ... },
 // }
+  // Let each displayed Spotify track find its saved match result by Spotify track ID.
   const resultsById = Object.fromEntries(
     (youtubeResult ?? []).map((r) => [r.trackId, r])
   );
@@ -49,6 +50,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
         <div className="track-list">
           {visibleTracks.map((track, index) => {
             const match = resultsById[track.id];
+            // Keep the same confidence bands as the progress box's final totals.
             const isMatched = match?.bestMatch && match.confidence >= 0.8;
             const possibleMatch = match?.bestMatch && match.confidence >= 0.4 && match.confidence < 0.8;
             const noMatch = match && (!match.bestMatch || match.confidence < 0.4);
