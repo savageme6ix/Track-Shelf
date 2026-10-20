@@ -162,7 +162,7 @@ p { color: var(--muted); margin: 8px 0 0 0; }
 .playlist-card .subtitle { color: rgba(255,255,255,.78); }
 
 .playlist-tag { position: absolute; z-index: 1; top: 14px; left: 14px; padding: 7px 10px; border-radius: 999px; background: rgba(0,0,0,.48); backdrop-filter: blur(10px); font-size: 10px; letter-spacing: .12em; font-weight: 800; }
-.playlist-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.playlist-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; max-width: 180px; flex-shrink: 0; flex-wrap: wrap; }
 .playlist-action { min-height: 34px; padding: 0 11px; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; color: #101010; background: var(--accent); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
 .playlist-action:hover:not(:disabled) { filter: brightness(1.08); }
 .playlist-action:disabled { cursor: not-allowed; opacity: .55; }
@@ -259,7 +259,16 @@ p { color: var(--muted); margin: 8px 0 0 0; }
 .track-art { flex: 0 0 42px; width: 42px; height: 42px; border-radius: 9px; object-fit: cover; background: rgba(255,255,255,.08); }
 .track-art-empty { display: grid; place-items: center; color: var(--accent); font-size: 20px; }
 .track-copy { min-width: 0; flex: 1; }
-.track-copy h3 { margin: 0; overflow: hidden; color: var(--text); font-family: var(--font); font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.track-title-row { min-width: 0; display: flex; align-items: center; gap: 8px; }
+.track-copy h3 { min-width: 0; flex: 1; margin: 0; overflow: hidden; color: var(--text); font-family: var(--font); font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.track-download-button { position: relative; flex: 0 0 auto; overflow: hidden; padding: 4px 8px; border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); border-radius: 7px; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); font: inherit; font-size: 10px; font-weight: 750; cursor: pointer; }
+.track-download-button:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.track-download-button:disabled { opacity: .6; cursor: wait; }
+.track-download-fill, .test-download-fill { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--accent) 36%, transparent); transition: width .35s ease; }
+.track-download-label, .test-download-label { position: relative; z-index: 1; }
+.test-download-action { position: relative; overflow: hidden; white-space: nowrap; }
+.test-download-action.is-downloading { color: var(--text); }
+.track-download-error { margin-top: 4px; color: #ff9eaa; font-size: 10px; line-height: 1.35; }
 .track-copy p { margin: 4px 0 0; overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .track-index { color: rgba(255,255,255,.35); font-size: 10px; font-variant-numeric: tabular-nums; }
 .track-pagination { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 5px; color: var(--muted); font-size: 11px; }

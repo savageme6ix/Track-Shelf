@@ -11,6 +11,7 @@ import callbackRoute from "./Routes/callbackRoute.js"
 import refreshTokenRoute from './Routes/refreshTokenRoute.js';
 import meRoute from './Routes/meRoute.js';
 import searchRoute from './Routes/searchRoute.js';
+import downloadRouter from './Routes/audio.js';
 app.use(cors({
   origin: "http://127.0.0.1:5173",
   credentials: true,
@@ -35,6 +36,7 @@ app.use("/api/spotify",callbackRoute);
 app.use("/api/spotify",refreshTokenRoute);
 app.use("/api/spotify",meRoute);
 app.use("/api/youtube", searchRoute);
+app.use('/api', downloadRouter);
 
 await loadCache();
 app.listen(PORT, ()=>{

@@ -1,6 +1,6 @@
 import { toHex } from '../utils/color';
 
-export default function ThemePanel({ theme, tracks, isLoading, progress, youtubeResult, localChecks = {}, status, trackPage, setTrackPage }) {
+export default function ThemePanel({ theme, tracks, isLoading, progress, youtubeResult, localChecks = {}, onDownload, downloadingTracks = {}, downloadProgress = {}, downloadErrors = {}, status, trackPage, setTrackPage }) {
   const { bg, accent, text, palette } = theme;
   const pageSize = 6;
   const pageCount = Math.ceil(tracks.length / pageSize);
@@ -55,6 +55,10 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
             const possibleMatch = match?.bestMatch && match.confidence >= 0.4 && match.confidence < 0.8;
             const noMatch = match && (!match.bestMatch || match.confidence < 0.4);
             const localMatch = localChecks[track.id] ?? match?.localMatch;
+            const youtubeCandidate = localMatch?.bestMatch ?? match?.bestMatch;
+            const canDownload = localMatch && !localMatch.found && youtubeCandidate?.videoId;
+            const trackDownloadProgress = downloadProgress[track.id] ?? 0;
+            const isDownloading = Boolean(downloadingTracks[track.id]);
 
             return(
             <article className="track-item" key={`${track.id}-${firstTrackIndex + index}`}>
@@ -64,7 +68,23 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
                 <div className="track-art track-art-empty" aria-hidden="true">♪</div>
               )}
               <div className="track-copy">
-                <h3 title={track.name}>{track.name}</h3>
+                <div className="track-title-row">
+                  <h3 title={track.name}>{track.name}</h3>
+                  {canDownload && (
+                    <button
+                      type="button"
+                      className={`track-download-button${isDownloading ? " is-downloading" : ""}`}
+                      onClick={() => onDownload(track, youtubeCandidate)}
+                      disabled={isDownloading}
+                      aria-label={`Download ${track.name} as audio`}
+                    >
+                      {isDownloading && <span className="track-download-fill" style={{ width: `${trackDownloadProgress}%` }} />}
+                      <span className="track-download-label">
+                        {isDownloading ? `Downloading ${trackDownloadProgress}%` : trackDownloadProgress === 100 ? "Saved" : "Download"}
+                      </span>
+                    </button>
+                  )}
+                </div>
                 <p title={track.artist}>{track.artist} 
                   {isMatched && <span className="matched-badge"> · matched</span>}
                   {possibleMatch && <span className="possible-badge"> ·⚠️ possible match</span>}
@@ -84,6 +104,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
                     <span className="local-missing-badge"> · not in Music folder</span>
                   ))}
                 </p>
+                {downloadErrors[track.id] && <p className="track-download-error" role="alert">{downloadErrors[track.id]}</p>}
               </div>
               <span className="track-index">{String(firstTrackIndex + index + 1).padStart(2, '0')}</span>
             </article>

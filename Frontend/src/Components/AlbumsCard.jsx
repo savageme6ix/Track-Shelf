@@ -8,8 +8,12 @@ export default function AlbumCard({
   onMatch,
   onFind,
   onTestFirst,
+  onTestDownload,
   matchDisabled = false,
   findDisabled = false,
+  testDownloadDisabled = false,
+  testDownloadProgress = 0,
+  isFindingSecondCandidate = false,
 }) {
   const noTracks = !tracks || tracks.length === 0;
   return (
@@ -39,6 +43,18 @@ export default function AlbumCard({
             </button>
             <button type="button" className="playlist-action test-first-action" onClick={onTestFirst} disabled={noTracks || findDisabled}>
               Test first
+            </button>
+            <button
+              type="button"
+              className={`playlist-action test-download-action${testDownloadProgress > 0 && testDownloadProgress < 100 ? " is-downloading" : ""}`}
+              onClick={onTestDownload}
+              disabled={noTracks || testDownloadDisabled}
+              title="Download the second track as a test"
+            >
+              {testDownloadProgress > 0 && testDownloadProgress < 100 && <span className="test-download-fill" style={{ width: `${testDownloadProgress}%` }} />}
+              <span className="test-download-label">
+                {isFindingSecondCandidate ? "Preparing #2…" : testDownloadProgress === 100 ? "Test saved" : testDownloadProgress > 0 ? `Test #2 ${testDownloadProgress}%` : "Test download #2"}
+              </span>
             </button>
           </div>
         )}

@@ -22,6 +22,10 @@ function App() {
   const [localChecks, setLocalChecks] = useState({});
   const [isCheckingLocal, setIsCheckingLocal] = useState(false);
   const [localCheckStatus, setLocalCheckStatus] = useState("");
+  const [downloadingTracks, setDownloadingTracks] = useState({});
+  const [downloadProgress, setDownloadProgress] = useState({});
+  const [downloadErrors, setDownloadErrors] = useState({});
+  const [isFindingSecondCandidate, setIsFindingSecondCandidate] = useState(false);
   const { theme, processImage } = useAlbumTheme();
   const { matchingJob, searchYoutube, resumeYoutube } = useYoutubeSearch();
   // Never show a saved job's results beside a different playlist.
@@ -52,6 +56,10 @@ function App() {
       setPlaylist(importedPlaylist);
       setTracks(importedTracks);
       setLocalChecks({});
+      setDownloadingTracks({});
+      setDownloadProgress({});
+      setDownloadErrors({});
+      setIsFindingSecondCandidate(false);
       setLocalCheckStatus("");
       setProgress(100);
       setStatus(`Loaded ${importedTracks.length} tracks from “${importedPlaylist.name}”.`);
@@ -120,6 +128,65 @@ function App() {
     }
   };
 
+  const downloadTrackAudio = async (track, candidate) => {
+    if (!candidate?.videoId || downloadingTracks[track.id]) return;
+    setDownloadingTracks((current) => ({ ...current, [track.id]: true }));
+    setDownloadProgress((current) => ({ ...current, [track.id]: 2 }));
+    setDownloadErrors((current) => ({ ...current, [track.id]: "" }));
+
+    try {
+      const youtubeUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(candidate.videoId)}`;
+      const response = await axios.post("http://127.0.0.1:3000/api/download-audio", {
+        url: youtubeUrl,
+        spotifyTrack: { name: track.name, artist: track.artist, album: track.album },
+        bestCandidate: candidate,
+      });
+      const jobId = response.data?.jobId;
+      if (!jobId) throw new Error("The download service did not return a job ID.");
+
+      let jobStatus;
+      do {
+        await new Promise((resolve) => window.setTimeout(resolve, 500));
+        const progressResponse = await axios.get(`http://127.0.0.1:3000/api/download-audio/${encodeURIComponent(jobId)}`);
+        jobStatus = progressResponse.data;
+        setDownloadProgress((current) => ({ ...current, [track.id]: jobStatus.progress ?? 0 }));
+        if (jobStatus.status === "failed") throw new Error(jobStatus.message || "Audio download failed.");
+      } while (jobStatus.status !== "complete");
+    } catch (downloadError) {
+      const message = downloadError.response?.data?.message || downloadError.message || "Audio download failed. Try again.";
+      setDownloadProgress((current) => ({ ...current, [track.id]: 0 }));
+      setDownloadErrors((current) => ({ ...current, [track.id]: message }));
+    } finally {
+      setDownloadingTracks((current) => ({ ...current, [track.id]: false }));
+    }
+  };
+
+  const testDownloadSecondTrack = async () => {
+    const track = tracks[1];
+    if (!track || isFindingSecondCandidate || downloadingTracks[track.id]) return;
+    setIsFindingSecondCandidate(true);
+    setDownloadErrors((current) => ({ ...current, [track.id]: "" }));
+    let candidate;
+    try {
+      const existingResults = Object.fromEntries((youtubeResult ?? []).map((result) => [result.trackId, result]));
+      candidate = localChecks[track.id]?.bestMatch ?? existingResults[track.id]?.bestMatch;
+      if (!candidate) {
+        const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
+          params: { name: track.name, artist: track.primaryArtist || track.artist, duration: track.durationMs },
+          withCredentials: true,
+        });
+        candidate = response.data?.bestMatch;
+      }
+      if (!candidate?.videoId) throw new Error("No YouTube candidate is available for the second track.");
+    } catch (downloadError) {
+      setDownloadErrors((current) => ({ ...current, [track.id]: downloadError.response?.data?.error || downloadError.message || "Could not prepare the second track download." }));
+      return;
+    } finally {
+      setIsFindingSecondCandidate(false);
+    }
+    await downloadTrackAudio(track, candidate);
+  };
+
   const playlistImage = playlist?.image || PLACEHOLDER_SRC;
 
   return (
@@ -152,8 +219,12 @@ function App() {
             }}
             onFind={() => findLocalFiles(false)}
             onTestFirst={() => findLocalFiles(true)}
+            onTestDownload={testDownloadSecondTrack}
             matchDisabled={matchingJob?.isRunning || matchingJob?.playlistId === playlist?.id || isCheckingLocal}
-            findDisabled={isCheckingLocal || matchingJob?.isRunning}
+            findDisabled={isCheckingLocal || matchingJob?.isRunning || isFindingSecondCandidate}
+            testDownloadDisabled={!tracks[1] || isFindingSecondCandidate || Boolean(downloadingTracks[tracks[1]?.id])}
+            testDownloadProgress={downloadProgress[tracks[1]?.id] ?? 0}
+            isFindingSecondCandidate={isFindingSecondCandidate}
           />
           {localCheckStatus && <p className="local-check-status" role="status" aria-live="polite">{localCheckStatus}</p>}
           {/* MatchProgress receives the saved job and the start/resume actions. */}
@@ -169,6 +240,10 @@ function App() {
           tracks={tracks}
           youtubeResult={youtubeResult}
           localChecks={localChecks}
+          onDownload={downloadTrackAudio}
+          downloadingTracks={downloadingTracks}
+          downloadProgress={downloadProgress}
+          downloadErrors={downloadErrors}
           isLoading={isLoading}
           progress={progress}
           status={status}

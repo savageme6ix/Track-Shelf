@@ -23,6 +23,8 @@ const LONG_TITLE_WORDS = 3;
 let indexedFiles = [];
 let indexedAt = 0;
 let indexing;
+let indexRevision = 0;
+let indexingRevision = -1;
 
 // path.resolve converts the chosen path into an absolute path
 export const musicDirectory = path.resolve(process.env.MUSIC_LIBRARY_PATH || path.join(os.homedir(), "Music"));
@@ -50,7 +52,10 @@ async function walk(directory) {
   const nested = await Promise.all(entries.map(async (entry) => {
     const fullPath = path.join(directory, entry.name);
     // If walk() finds another directory, it calls itself on that directory(recursive).
-    if (entry.isDirectory()) return walk(fullPath);
+    if (entry.isDirectory()) {
+      if (entry.name === ".track-shelf-staging") return [];
+      return walk(fullPath);
+    }
     if (entry.isFile() && AUDIO_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) return [fullPath];
     return [];
   }));
@@ -61,9 +66,10 @@ async function getIndex() {
   // Reuse the last scan if it is less than a minute old, so we don't re-read the disk for every track.
   if (Date.now() - indexedAt < CACHE_MS) return indexedFiles;
   // If a scan is already running, everyone waits for that same scan instead of starting a new one.
-  if (!indexing) {
-    indexing = walk(musicDirectory).then((files) => {
-      indexedFiles = files.map((filePath) => {
+  if (!indexing || indexingRevision !== indexRevision) {
+    const revisionAtStart = indexRevision;
+    const currentIndexing = walk(musicDirectory).then((files) => {
+      const scannedFiles = files.map((filePath) => {
         // Folder names below the music folder, e.g. "Beyonce/Lemonade" → "beyonce", "lemonade".
         // Many libraries are organised as Artist/Album/Song.mp3, so the artist is often in the folder, not the filename.
         const relativeFolder = path.relative(musicDirectory, path.dirname(filePath));
@@ -75,9 +81,19 @@ async function getIndex() {
           folderWords: new Set(toTokens(relativeFolder)),
         };
       });
-      indexedAt = Date.now();
+      if (revisionAtStart === indexRevision) {
+        indexedFiles = scannedFiles;
+        indexedAt = Date.now();
+      }
       return indexedFiles;
-    }).finally(() => { indexing = null; });
+    }).finally(() => {
+      if (indexing === currentIndexing) {
+        indexing = null;
+        indexingRevision = -1;
+      }
+    });
+    indexing = currentIndexing;
+    indexingRevision = revisionAtStart;
   }
   return indexing;
 }
@@ -133,4 +149,9 @@ export async function findLocalTrack(bestMatch, spotifyTrack) {
   }
 
   return { found: false, directory: musicDirectory };
+}
+
+export function invalidateLocalMusicIndex() {
+  indexRevision += 1;
+  indexedAt = 0;
 }
