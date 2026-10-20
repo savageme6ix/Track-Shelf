@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 function formatResetTime(value) {
   if (!value) return "after YouTube's daily quota resets";
-  // The backend sends a reset timestamp; display that instant in the user's Nairobi time.
+  // The backend sends a reset timestamp; display that instant in the user's time.
   return new Intl.DateTimeFormat(undefined, {
     year: "numeric",
     month: "short",
@@ -67,10 +67,7 @@ export default function MatchProgress({ playlist, job, onStart, onResume }) {
           {recentRows.length === 0 ? (
             <p className="match-activity-empty">Matching…</p>
           ) : recentRows.map(({ result, number }, index) => {
-            // Temporary debugging helper: log the candidates for the 131st playlist track.
-            if (result.trackIndex === 130) {
-              console.log("Candidates for song 131:", result.candidates);
-            }
+            
             const status = !result.bestMatch
               ? { icon: "×", label: "Not found", className: "unmatched" }
               : result.confidence >= 0.8
