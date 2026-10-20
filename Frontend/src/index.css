@@ -162,7 +162,13 @@ p { color: var(--muted); margin: 8px 0 0 0; }
 .playlist-card .subtitle { color: rgba(255,255,255,.78); }
 
 .playlist-tag { position: absolute; z-index: 1; top: 14px; left: 14px; padding: 7px 10px; border-radius: 999px; background: rgba(0,0,0,.48); backdrop-filter: blur(10px); font-size: 10px; letter-spacing: .12em; font-weight: 800; }
-.imported-check { flex: 0 0 34px; height: 34px; display: grid; place-items: center; border-radius: 5px; color: #101010; background: var(--accent); font-weight: 900; padding: 10px; border: none; cursor: pointer;}
+.playlist-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.playlist-action { min-height: 34px; padding: 0 11px; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; color: #101010; background: var(--accent); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.playlist-action:hover:not(:disabled) { filter: brightness(1.08); }
+.playlist-action:disabled { cursor: not-allowed; opacity: .55; }
+.find-action { color: #fff; background: rgba(255,255,255,.12); }
+.test-first-action { color: var(--text); background: transparent; }
+.local-check-status { margin: -6px 4px 0; font-size: 11px; line-height: 1.45; }
 
 .possible-badge { color: #facc15; font-size: 0.75rem; font-weight: 600; }
 .matched-badge { color: #4ade80; font-size: 0.75rem; font-weight: 600; }
@@ -286,6 +292,8 @@ a { color: var(--text); }
   .idInputter { min-width: 0; flex: 1; }
   .grid { grid-template-columns: 1fr; }
   .playlist-column { gap: 12px; }
+  .playlist-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .playlist-action { padding: 0 8px; }
   .playlist-card { min-height: 0; }
   .art { height: min(82vw, 420px); }
 }

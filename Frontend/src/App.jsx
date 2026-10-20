@@ -19,6 +19,9 @@ function App() {
   const [status, setStatus] = useState('Paste a Spotify playlist link to get started.');
   const [progress, setProgress] = useState(0);
   const [trackPage, setTrackPage] = useState(0);
+  const [localChecks, setLocalChecks] = useState({});
+  const [isCheckingLocal, setIsCheckingLocal] = useState(false);
+  const [localCheckStatus, setLocalCheckStatus] = useState("");
   const { theme, processImage } = useAlbumTheme();
   const { matchingJob, searchYoutube, resumeYoutube } = useYoutubeSearch();
   // Never show a saved job's results beside a different playlist.
@@ -48,6 +51,8 @@ function App() {
 
       setPlaylist(importedPlaylist);
       setTracks(importedTracks);
+      setLocalChecks({});
+      setLocalCheckStatus("");
       setProgress(100);
       setStatus(`Loaded ${importedTracks.length} tracks from “${importedPlaylist.name}”.`);
       return true;
@@ -64,6 +69,51 @@ function App() {
       return false;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const findLocalFiles = async (firstOnly = false) => {
+    if (!tracks.length || isCheckingLocal) return;
+    setIsCheckingLocal(true);
+    setLocalCheckStatus(firstOnly ? "Checking the first track…" : "Checking tracks against your Music folder…");
+    const existingResults = Object.fromEntries((youtubeResult ?? []).map((result) => [result.trackId, result]));
+    const tracksToCheck = firstOnly ? tracks.slice(0, 1) : tracks;
+    let checkedCount = 0;
+
+    try {
+      for (const track of tracksToCheck) {
+        let candidate = existingResults[track.id]?.bestMatch;
+        if (!candidate) {
+          const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
+            params: {
+              name: track.name,
+              artist: track.primaryArtist || track.artist,
+              duration: track.durationMs,
+            },
+            withCredentials: true,
+          });
+          candidate = response.data?.bestMatch;
+        }
+        if (!candidate) {
+          setLocalCheckStatus(`No YouTube best candidate was available for “${track.name}”.`);
+          continue;
+        }
+        const response = await axios.post("http://127.0.0.1:3000/api/youtube/local-check", {
+          bestMatch: candidate,
+          spotifyTrack: { name: track.name, artist: track.primaryArtist || track.artist },
+        });
+        setLocalChecks((current) => ({ ...current, [track.id]: response.data.localMatch }));
+        checkedCount += 1;
+      }
+      if (checkedCount > 0) {
+        setLocalCheckStatus(firstOnly
+          ? `Finished checking “${tracks[0].name}”.`
+          : `Finished checking ${checkedCount} track${checkedCount === 1 ? "" : "s"}.`);
+      }
+    } catch (checkError) {
+      setLocalCheckStatus(checkError.response?.data?.error || checkError.message || "Local music check failed.");
+    } finally {
+      setIsCheckingLocal(false);
     }
   };
 
@@ -97,8 +147,12 @@ function App() {
                 searchYoutube(tracks, playlist.id);
               }
             }}
-            matchDisabled={matchingJob?.isRunning || matchingJob?.playlistId === playlist?.id}
+            onFind={() => findLocalFiles(false)}
+            onTestFirst={() => findLocalFiles(true)}
+            matchDisabled={matchingJob?.isRunning || matchingJob?.playlistId === playlist?.id || isCheckingLocal}
+            findDisabled={isCheckingLocal || matchingJob?.isRunning}
           />
+          {localCheckStatus && <p className="local-check-status" role="status" aria-live="polite">{localCheckStatus}</p>}
           {/* MatchProgress receives the saved job and the start/resume actions. */}
           <MatchProgress
             playlist={playlist}
@@ -111,6 +165,7 @@ function App() {
           theme={theme}
           tracks={tracks}
           youtubeResult={youtubeResult}
+          localChecks={localChecks}
           isLoading={isLoading}
           progress={progress}
           status={status}

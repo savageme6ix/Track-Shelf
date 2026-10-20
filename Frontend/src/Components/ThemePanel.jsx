@@ -1,6 +1,6 @@
 import { toHex } from '../utils/color';
 
-export default function ThemePanel({ theme, tracks, isLoading, progress, youtubeResult,status, trackPage, setTrackPage }) {
+export default function ThemePanel({ theme, tracks, isLoading, progress, youtubeResult, localChecks = {}, status, trackPage, setTrackPage }) {
   const { bg, accent, text, palette } = theme;
   const pageSize = 6;
   const pageCount = Math.ceil(tracks.length / pageSize);
@@ -54,6 +54,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
             const isMatched = match?.bestMatch && match.confidence >= 0.8;
             const possibleMatch = match?.bestMatch && match.confidence >= 0.4 && match.confidence < 0.8;
             const noMatch = match && (!match.bestMatch || match.confidence < 0.4);
+            const localMatch = localChecks[track.id] ?? match?.localMatch;
 
             return(
             <article className="track-item" key={`${track.id}-${firstTrackIndex + index}`}>
@@ -68,8 +69,8 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
                   {isMatched && <span className="matched-badge"> · matched</span>}
                   {possibleMatch && <span className="possible-badge"> ·⚠️ possible match</span>}
                   {noMatch && <span className="no-badge"> · no match</span>}
-                  {match?.localMatch?.found && <span className="local-badge" title={match.localMatch.path}> · on this PC</span>}
-                  {match?.localMatch && !match.localMatch.found && <span className="local-missing-badge"> · not in Music folder</span>}
+                  {localMatch?.found && <span className="local-badge" title={localMatch.path}> · on this PC</span>}
+                  {localMatch && !localMatch.found && <span className="local-missing-badge"> · not in Music folder</span>}
                 </p>
               </div>
               <span className="track-index">{String(firstTrackIndex + index + 1).padStart(2, '0')}</span>

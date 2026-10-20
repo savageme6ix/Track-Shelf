@@ -81,8 +81,7 @@ const searchVid = async(req,res)=>{
     const cachedData = getCached(cacheKey);
     if (cachedData) {
       console.log(`[Cache Hit] Serving results for: "${query}"`);
-      const localMatch = await findLocalTrack(cachedData.bestMatch);
-      return res.json({ source: 'cache', ...cachedData, localMatch });
+      return res.json({ source: 'cache', ...cachedData });
     }
 
     console.log(`[Cache Miss] Querying YouTube API for: "${query}"`);
@@ -139,13 +138,12 @@ const searchVid = async(req,res)=>{
         });
         
         const bestCandidate = matchEngine(formattedVideos,spotifyTrack);
-        const localMatch = await findLocalTrack(bestCandidate.bestMatch);
 
         // Only successful search results are cached; API errors remain retryable.
         await setCached(cacheKey, bestCandidate);
 
         //send to client
-        res.json({source: 'api', ...bestCandidate, localMatch});
+        res.json({source: 'api', ...bestCandidate});
     }catch(error){
          console.error('API Error:', error.response?.data || error.message);
         if (isDailyQuotaError(error)) {
@@ -168,5 +166,18 @@ const searchVid = async(req,res)=>{
      });
     }
 }
+
+export const checkLocalTrack = async (req, res) => {
+  const { bestMatch, spotifyTrack } = req.body ?? {};
+  if (!bestMatch || typeof bestMatch.title !== "string" || typeof bestMatch.channelTitle !== "string") {
+    return res.status(400).json({ error: "A YouTube candidate with title and channelTitle is required." });
+  }
+  try {
+    return res.json({ localMatch: await findLocalTrack(bestMatch, spotifyTrack) });
+  } catch (error) {
+    console.error("Local music scan failed:", error.message);
+    return res.status(500).json({ error: "Could not scan the local music folder." });
+  }
+};
 
 export default searchVid;

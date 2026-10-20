@@ -6,7 +6,10 @@ export default function AlbumCard({
   onImageLoad,
   isImported,
   onMatch,
+  onFind,
+  onTestFirst,
   matchDisabled = false,
+  findDisabled = false,
 }) {
   const noTracks = !tracks || tracks.length === 0;
   return (
@@ -27,14 +30,17 @@ export default function AlbumCard({
           <p className="subtitle">{subtitle}</p>
         </div>
         {isImported && (
-          <button
-            className="imported-check"
-            aria-label="Match to Youtube"
-            onClick={onMatch}
-            disabled={noTracks || matchDisabled}
-          >
-            Match
-          </button>
+          <div className="playlist-actions">
+            <button type="button" className="playlist-action" onClick={onMatch} disabled={noTracks || matchDisabled}>
+              Match
+            </button>
+            <button type="button" className="playlist-action find-action" onClick={onFind} disabled={noTracks || findDisabled}>
+              Find
+            </button>
+            <button type="button" className="playlist-action test-first-action" onClick={onTestFirst} disabled={noTracks || findDisabled}>
+              Test first
+            </button>
+          </div>
         )}
       </div>
     </section>
