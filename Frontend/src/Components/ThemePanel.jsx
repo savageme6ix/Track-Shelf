@@ -68,6 +68,8 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
                   {isMatched && <span className="matched-badge"> · matched</span>}
                   {possibleMatch && <span className="possible-badge"> ·⚠️ possible match</span>}
                   {noMatch && <span className="no-badge"> · no match</span>}
+                  {match?.localMatch?.found && <span className="local-badge" title={match.localMatch.path}> · on this PC</span>}
+                  {match?.localMatch && !match.localMatch.found && <span className="local-missing-badge"> · not in Music folder</span>}
                 </p>
               </div>
               <span className="track-index">{String(firstTrackIndex + index + 1).padStart(2, '0')}</span>

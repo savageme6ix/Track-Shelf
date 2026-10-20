@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { getCached, setCached } from "../Utils/fileCache.js";
 import { matchEngine } from "../Utils/matchEngine.js";
+import { findLocalTrack } from "../Utils/localMusicLibrary.js";
 import axios from "axios";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
@@ -80,7 +81,8 @@ const searchVid = async(req,res)=>{
     const cachedData = getCached(cacheKey);
     if (cachedData) {
       console.log(`[Cache Hit] Serving results for: "${query}"`);
-      return res.json({ source: 'cache', ...cachedData});
+      const localMatch = await findLocalTrack(cachedData.bestMatch, spotifyTrack);
+      return res.json({ source: 'cache', ...cachedData, localMatch });
     }
 
     console.log(`[Cache Miss] Querying YouTube API for: "${query}"`);
@@ -137,12 +139,13 @@ const searchVid = async(req,res)=>{
         });
         
         const bestCandidate = matchEngine(formattedVideos,spotifyTrack);
+        const localMatch = await findLocalTrack(bestCandidate.bestMatch, spotifyTrack);
 
         // Only successful search results are cached; API errors remain retryable.
         await setCached(cacheKey, bestCandidate);
 
         //send to client
-        res.json({source: 'api', ...bestCandidate});
+        res.json({source: 'api', ...bestCandidate, localMatch});
     }catch(error){
          console.error('API Error:', error.response?.data || error.message);
         if (isDailyQuotaError(error)) {
