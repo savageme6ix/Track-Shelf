@@ -81,7 +81,7 @@ const searchVid = async(req,res)=>{
     const cachedData = getCached(cacheKey);
     if (cachedData) {
       console.log(`[Cache Hit] Serving results for: "${query}"`);
-      const localMatch = await findLocalTrack(cachedData.bestMatch, spotifyTrack);
+      const localMatch = await findLocalTrack(cachedData.bestMatch);
       return res.json({ source: 'cache', ...cachedData, localMatch });
     }
 
@@ -139,7 +139,7 @@ const searchVid = async(req,res)=>{
         });
         
         const bestCandidate = matchEngine(formattedVideos,spotifyTrack);
-        const localMatch = await findLocalTrack(bestCandidate.bestMatch, spotifyTrack);
+        const localMatch = await findLocalTrack(bestCandidate.bestMatch);
 
         // Only successful search results are cached; API errors remain retryable.
         await setCached(cacheKey, bestCandidate);
