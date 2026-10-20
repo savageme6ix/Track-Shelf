@@ -102,7 +102,10 @@ function App() {
           bestMatch: candidate,
           spotifyTrack: { name: track.name, artist: track.primaryArtist || track.artist },
         });
-        setLocalChecks((current) => ({ ...current, [track.id]: response.data.localMatch }));
+        setLocalChecks((current) => ({
+          ...current,
+          [track.id]: { ...response.data.localMatch, bestMatch: candidate },
+        }));
         checkedCount += 1;
       }
       if (checkedCount > 0) {

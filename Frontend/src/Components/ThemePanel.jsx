@@ -70,7 +70,19 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
                   {possibleMatch && <span className="possible-badge"> ·⚠️ possible match</span>}
                   {noMatch && <span className="no-badge"> · no match</span>}
                   {localMatch?.found && <span className="local-badge" title={localMatch.path}> · on this PC</span>}
-                  {localMatch && !localMatch.found && <span className="local-missing-badge"> · not in Music folder</span>}
+                  {localMatch && !localMatch.found && (localMatch.bestMatch?.videoId ? (
+                    <a
+                      className="local-missing-badge"
+                      href={`https://www.youtube.com/watch?v=${encodeURIComponent(localMatch.bestMatch.videoId)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`Open YouTube candidate: ${localMatch.bestMatch.title}`}
+                    >
+                      · not in Music folder
+                    </a>
+                  ) : (
+                    <span className="local-missing-badge"> · not in Music folder</span>
+                  ))}
                 </p>
               </div>
               <span className="track-index">{String(firstTrackIndex + index + 1).padStart(2, '0')}</span>
