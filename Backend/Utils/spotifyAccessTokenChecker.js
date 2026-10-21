@@ -57,12 +57,13 @@ export async function getValidAccessToken(req) {
         : "token_refresh_failed"
     );
   }
-
+  if(body.access_token){
   // Save the new token and its expiration.
   req.session.spotifyAccessToken = body.access_token;
 
   req.session.spotifyExpiresAt =
     Date.now() + body.expires_in * 1000;
+  }
 
   // Spotify may omit a new refresh token.
   if (body.refresh_token) {

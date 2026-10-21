@@ -27,8 +27,13 @@ const response = await fetch("https://accounts.spotify.com/api/token", {
 
 const body = await response.json();
 
-req.session.spotifyAccessToken = body.access_token;
-req.session.spotifyExpiresAt = Date.now() + body.expires_in * 1000;
+if(response.ok){
+  req.session.spotifyAccessToken = body.access_token;
+  req.session.spotifyExpiresAt = Date.now() + body.expires_in * 1000;
+}else{
+  return res.status(401).json({ error: "reauthorization_required" });
+}
+
 if (body.refresh_token) {
   req.session.spotifyRefreshToken = body.refresh_token;
 }
