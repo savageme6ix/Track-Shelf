@@ -10,6 +10,8 @@ const router = express.Router();
 const stagingDirectory = path.join(musicDirectory, ".track-shelf-staging");
 const youtubeCookiesFile = process.env.YOUTUBE_COOKIES_FILE?.trim();
 const jobs = new Map();
+const DOWNLOAD_TIMEOUT_MS = 8 * 60 * 1000;
+const JOB_RETENTION_MS = 30 * 60 * 1000;
 const ALLOWED_HOSTS = new Set([
   "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtube-nocookie.com",
 ]);
@@ -123,7 +125,7 @@ async function runDownload(job, url, metadata) {
       // Use an explicitly configured export only when the user has supplied one.
       ...(youtubeCookiesFile ? { cookies: youtubeCookiesFile } : {}),
       postprocessorArgs: createMetadataArgs(metadata),
-    }, { timeout: 20 * 60 * 1000, killSignal: "SIGTERM" });
+    }, { timeout: DOWNLOAD_TIMEOUT_MS, killSignal: "SIGTERM" });
     subprocess.stderr?.on("data", (chunk) => setProgressFromStderr(job, chunk));
     await subprocess;
 
@@ -144,7 +146,9 @@ async function runDownload(job, url, metadata) {
     job.status = "failed";
     const diagnostic = error.stderr?.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(-4).join(" ");
     const requiresYouTubeLogin = /sign in to confirm your age|confirm your age/i.test(diagnostic || "");
-    job.message = requiresYouTubeLogin && !youtubeCookiesFile
+    job.message = error.killed || error.signal
+      ? "Download timed out after 8 minutes. You can try again."
+      : requiresYouTubeLogin && !youtubeCookiesFile
       ? "YouTube requires sign-in for this video. Export a YouTube cookies.txt file, set YOUTUBE_COOKIES_FILE in the backend environment, and restart the backend. Keep that file private."
       : diagnostic || error.message || "Audio download failed.";
     job.completedAt = Date.now();
@@ -173,21 +177,21 @@ router.post("/download-audio", async (req, res) => {
     artist: cleanText(spotifyTrack.artist, cleanText(bestCandidate.channelTitle, "Unknown artist")),
     album: cleanText(spotifyTrack.album, "", 180),
   };
-  const job = { id: randomUUID(), status: "queued", progress: 0, message: "Waiting to start…", fileName: null, stderrBuffer: "" };
+  const job = { id: randomUUID(), status: "queued", progress: 0, message: "Waiting to start…", fileName: null, stderrBuffer: "", createdAt: Date.now() };
   jobs.set(job.id, job);
   void runDownload(job, parsedUrl.toString(), metadata);
   res.status(202).json({ jobId: job.id });
 });
 
 function scheduleJobCleanup(job) {
-  const timer = setTimeout(() => jobs.delete(job.id), 30 * 60 * 1000);
+  const timer = setTimeout(() => jobs.delete(job.id), JOB_RETENTION_MS);
   timer.unref?.();
 }
 
 router.get("/download-audio/:jobId", (req, res) => {
   const job = jobs.get(req.params.jobId);
   if (!job) return res.status(404).json({ message: "Download job not found." });
-  if (job.completedAt && Date.now() - job.completedAt > 30 * 60 * 1000) {
+  if (job.completedAt && Date.now() - job.completedAt > JOB_RETENTION_MS) {
     jobs.delete(job.id);
     return res.status(404).json({ message: "Download job has expired." });
   }

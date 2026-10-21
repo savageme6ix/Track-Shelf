@@ -10,6 +10,7 @@ import useYoutubeSearch from './utils/youtubeSearch';
 import './index.css';
 
 const API_BASE = 'http://127.0.0.1:3000/api/spotify';
+const DOWNLOAD_TIMEOUT_MS = 8 * 60 * 1000;
 
 function App() {
   const [playlist, setPlaylist] = useState(null);
@@ -130,19 +131,29 @@ function App() {
     setDownloadErrors((current) => ({ ...current, [track.id]: "" }));
 
     try {
+      const deadline = Date.now() + DOWNLOAD_TIMEOUT_MS;
       const youtubeUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(candidate.videoId)}`;
       const response = await axios.post("http://127.0.0.1:3000/api/download-audio", {
         url: youtubeUrl,
         spotifyTrack: { name: track.name, artist: track.artist, album: track.album },
         bestCandidate: candidate,
-      });
+      }, { timeout: DOWNLOAD_TIMEOUT_MS });
       const jobId = response.data?.jobId;
       if (!jobId) throw new Error("The download service did not return a job ID.");
 
       let jobStatus;
       do {
+        if (Date.now() >= deadline) {
+          throw new Error("Download timed out after 8 minutes. You can try again.");
+        }
         await new Promise((resolve) => window.setTimeout(resolve, 500));
-        const progressResponse = await axios.get(`http://127.0.0.1:3000/api/download-audio/${encodeURIComponent(jobId)}`);
+        if (Date.now() >= deadline) {
+          throw new Error("Download timed out after 8 minutes. You can try again.");
+        }
+        const progressResponse = await axios.get(
+          `http://127.0.0.1:3000/api/download-audio/${encodeURIComponent(jobId)}`,
+          { timeout: Math.max(1, deadline - Date.now()) }
+        );
         jobStatus = progressResponse.data;
         setDownloadProgress((current) => ({ ...current, [track.id]: jobStatus.progress ?? 0 }));
         if (jobStatus.status === "failed") throw new Error(jobStatus.message || "Audio download failed.");
