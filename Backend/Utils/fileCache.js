@@ -7,12 +7,32 @@ const TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 let cache = {};
 
+function removeExpiredEntries() {
+  const now = Date.now();
+  let removed = false;
+
+  for (const [key, entry] of Object.entries(cache)) {
+    if (!entry || now - entry.savedAt > TTL_MS) {
+      delete cache[key];
+      removed = true;
+    }
+  }
+
+  return removed;
+}
+
+async function saveCache() {
+  await fs.mkdir(path.dirname(CACHE_FILE), { recursive: true });
+  await fs.writeFile(CACHE_FILE, JSON.stringify(cache, null, 2));
+}
+
 // load once when the server starts
 export async function loadCache() {
   try {
     // Load once at server startup; getCached/setCached use this in-memory copy while running.
     const raw = await fs.readFile(CACHE_FILE, "utf-8");
     cache = JSON.parse(raw);
+    if (removeExpiredEntries()) await saveCache();
   } catch {
     cache = {}; // file doesn't exist yet or is corrupted, start fresh
   }
@@ -30,8 +50,7 @@ export function getCached(key) {
 }
 
 export async function setCached(key, data) {
+  removeExpiredEntries();
   cache[key] = { savedAt: Date.now(), data };
-
-  await fs.mkdir(path.dirname(CACHE_FILE), { recursive: true });
-  await fs.writeFile(CACHE_FILE, JSON.stringify(cache, null, 2));
+  await saveCache();
 }
