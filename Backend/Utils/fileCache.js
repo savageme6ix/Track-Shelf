@@ -12,7 +12,16 @@ function removeExpiredEntries() {
   let removed = false;
 
   for (const [key, entry] of Object.entries(cache)) {
-    if (!entry || now - entry.savedAt > TTL_MS) {
+    const validEntry = entry &&
+      typeof entry === "object" &&
+      !Array.isArray(entry) &&
+      Number.isFinite(entry.savedAt) &&
+      entry.savedAt <= now &&
+      entry.data &&
+      typeof entry.data === "object" &&
+      !Array.isArray(entry.data);
+
+    if (!validEntry || now - entry.savedAt > TTL_MS) {
       delete cache[key];
       removed = true;
     }
@@ -28,22 +37,32 @@ async function saveCache() {
 
 // load once when the server starts
 export async function loadCache() {
+  let raw;
   try {
-    // Load once at server startup; getCached/setCached use this in-memory copy while running.
-    const raw = await fs.readFile(CACHE_FILE, "utf-8");
-    cache = JSON.parse(raw);
-    if (removeExpiredEntries()) await saveCache();
+    raw = await fs.readFile(CACHE_FILE, "utf-8");
   } catch {
     cache = {}; // file doesn't exist yet or is corrupted, start fresh
+    return;
   }
+
+  try {
+    const parsed = JSON.parse(raw);
+    cache = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    cache = {}; // Invalid JSON, start fresh.
+    return;
+  }
+
+  if (removeExpiredEntries()) await saveCache();
 }
 
-export function getCached(key) {
+export async function getCached(key) {
   const entry = cache[key];
   if (!entry) return null;
 
-  if (Date.now() - entry.savedAt > TTL_MS) {
+  if (!Number.isFinite(entry.savedAt) || Date.now() - entry.savedAt > TTL_MS) {
     delete cache[key];
+    await saveCache();
     return null;
   }
   return entry.data;

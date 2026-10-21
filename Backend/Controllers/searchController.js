@@ -78,7 +78,7 @@ const searchVid = async(req,res)=>{
         const cacheKey = `${name}|${artist}|${durationSec}`.toLowerCase();
 
         // Reuse a previous match before spending another YouTube search request.
-    const cachedData = getCached(cacheKey);
+    const cachedData = await getCached(cacheKey);
     if (cachedData) {
       console.log(`[Cache Hit] Serving results for: "${query}"`);
       return res.json({ source: 'cache', ...cachedData });
