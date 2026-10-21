@@ -91,6 +91,8 @@ function App() {
     let noCandidateCount = 0;
     let failedCount = 0;
     const failedTrackNames = [];
+    let quotaStoppedAt = null;
+    let quotaResetAt = null;
 
     try {
       for (let trackIndex = 0; trackIndex < tracks.length; trackIndex += 1) {
@@ -126,6 +128,11 @@ function App() {
           }));
           checkedCount += 1;
         } catch (trackError) {
+          if (trackError.response?.data?.quotaExceeded) {
+            quotaStoppedAt = track.name;
+            quotaResetAt = trackError.response.data.resetAt ?? null;
+            break;
+          }
           failedCount += 1;
           failedTrackNames.push(track.name);
           console.warn(`Local music check failed for “${track.name}”; continuing with the next track.`, trackError);
@@ -134,6 +141,11 @@ function App() {
       const summary = [`Finished checking ${checkedCount} track${checkedCount === 1 ? "" : "s"}`];
       if (noCandidateCount) summary.push(`${noCandidateCount} had no YouTube candidate`);
       if (failedCount) summary.push(`${failedCount} could not be checked (${failedTrackNames.slice(0, 3).join(", ")}${failedTrackNames.length > 3 ? ", …" : ""})`);
+      if (quotaStoppedAt) {
+        const resetText = quotaResetAt ? ` YouTube quota resets at ${new Date(quotaResetAt).toLocaleString()}.` : "";
+        setLocalCheckStatus(`Stopped at “${quotaStoppedAt}” because YouTube’s daily quota was reached. Checked ${checkedCount} tracks before the limit.${resetText}`);
+        return;
+      }
       setLocalCheckStatus(`${summary.join(" · ")}.`);
     } finally {
       setIsCheckingLocal(false);
