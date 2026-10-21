@@ -108,6 +108,13 @@ async function runDownload(job, url, metadata) {
   try {
     await fs.mkdir(musicDirectory, { recursive: true });
     await fs.mkdir(stagingDirectory, { recursive: true });
+    if (job.cancelRequested) {
+      job.status = "canceled";
+      job.message = "Download canceled.";
+      job.completedAt = Date.now();
+      scheduleJobCleanup(job);
+      return;
+    }
     const subprocess = youtubedl.exec(url, {
       extractAudio: true,
       audioFormat: "mp3",
@@ -126,8 +133,20 @@ async function runDownload(job, url, metadata) {
       ...(youtubeCookiesFile ? { cookies: youtubeCookiesFile } : {}),
       postprocessorArgs: createMetadataArgs(metadata),
     }, { timeout: DOWNLOAD_TIMEOUT_MS, killSignal: "SIGTERM" });
+    job.subprocess = subprocess;
+    if (job.cancelRequested) subprocess.kill("SIGTERM");
     subprocess.stderr?.on("data", (chunk) => setProgressFromStderr(job, chunk));
     await subprocess;
+    job.subprocess = null;
+
+    if (job.cancelRequested) {
+      await cleanStagedFiles(job.id);
+      job.status = "canceled";
+      job.message = "Download canceled.";
+      job.completedAt = Date.now();
+      scheduleJobCleanup(job);
+      return;
+    }
 
     job.progress = 98;
     job.message = "Saving file into your Music folder…";
@@ -142,7 +161,15 @@ async function runDownload(job, url, metadata) {
     job.completedAt = Date.now();
     scheduleJobCleanup(job);
   } catch (error) {
+    job.subprocess = null;
     await cleanStagedFiles(job.id);
+    if (job.cancelRequested) {
+      job.status = "canceled";
+      job.message = "Download canceled.";
+      job.completedAt = Date.now();
+      scheduleJobCleanup(job);
+      return;
+    }
     job.status = "failed";
     const diagnostic = error.stderr?.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(-4).join(" ");
     const requiresYouTubeLogin = /sign in to confirm your age|confirm your age/i.test(diagnostic || "");
@@ -187,6 +214,19 @@ function scheduleJobCleanup(job) {
   const timer = setTimeout(() => jobs.delete(job.id), JOB_RETENTION_MS);
   timer.unref?.();
 }
+
+router.post("/download-audio/:jobId/cancel", (req, res) => {
+  const job = jobs.get(req.params.jobId);
+  if (!job) return res.status(404).json({ message: "Download job not found." });
+  if (job.status === "complete" || job.status === "failed" || job.status === "canceled") {
+    return res.json({ status: job.status, message: job.message });
+  }
+
+  job.cancelRequested = true;
+  job.message = "Canceling download…";
+  job.subprocess?.kill("SIGTERM");
+  return res.json({ status: "canceling", message: job.message });
+});
 
 router.get("/download-audio/:jobId", (req, res) => {
   const job = jobs.get(req.params.jobId);

@@ -1,6 +1,6 @@
 import { toHex } from '../utils/color';
 
-export default function ThemePanel({ theme, tracks, isLoading, progress, youtubeResult, localChecks = {}, onDownload, downloadingTracks = {}, downloadProgress = {}, downloadErrors = {}, status, trackPage, setTrackPage }) {
+export default function ThemePanel({ theme, tracks, isLoading, progress, youtubeResult, localChecks = {}, onDownload, downloadingTracks = {}, downloadProgress = {}, downloadErrors = {}, downloadAll = {}, downloadQueueProgress = 0, onDownloadAll, onCancelDownloadAll, status, trackPage, setTrackPage }) {
   const { bg, accent, text, palette } = theme;
   const pageSize = 6;
   const pageCount = Math.ceil(tracks.length / pageSize);
@@ -16,6 +16,11 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
   const resultsById = Object.fromEntries(
     (youtubeResult ?? []).map((r) => [r.trackId, r])
   );
+  const downloadableCount = tracks.filter((track) => {
+    const localCheck = localChecks[track.id];
+    const candidate = localCheck?.bestMatch ?? resultsById[track.id]?.bestMatch;
+    return localCheck && !localCheck.found && candidate?.videoId && downloadProgress[track.id] !== 100;
+  }).length;
 
   return (
     <aside className="panel">
@@ -24,7 +29,30 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
           <p className="eyebrow">YOUR IMPORT</p>
           <h2>Tracks in the mix</h2>
         </div>
-        {tracks.length > 0 && <span className="track-count">{tracks.length}</span>}
+        <div className="panel-heading-actions">
+          {tracks.length > 0 && <span className="track-count">{tracks.length}</span>}
+          {tracks.length > 0 && (
+            <div className="download-all-controls">
+              <button
+                type="button"
+                className={`download-all-button${downloadAll.active ? " is-active" : ""}`}
+                onClick={onDownloadAll}
+                disabled={downloadAll.active || downloadableCount === 0 || Object.values(downloadingTracks).some(Boolean)}
+                aria-label={downloadAll.active ? `Downloading tracks: ${downloadAll.completed} of ${downloadAll.total} processed, ${downloadQueueProgress}% overall` : `Download all ${downloadableCount} eligible tracks`}
+              >
+                {downloadAll.active && <span className="download-all-fill" style={{ width: `${downloadQueueProgress}%` }} />}
+                <span className="download-all-label">
+                  {downloadAll.active ? `Downloading ${Math.min(downloadAll.completed + 1, downloadAll.total)}/${downloadAll.total} · ${downloadQueueProgress}%` : `Download all${downloadableCount ? ` (${downloadableCount})` : ""}`}
+                </span>
+              </button>
+              {downloadAll.active && (
+                <button type="button" className="download-all-cancel" onClick={onCancelDownloadAll}>
+                  Cancel
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="import-progress" aria-live="polite">
@@ -75,7 +103,7 @@ export default function ThemePanel({ theme, tracks, isLoading, progress, youtube
                       type="button"
                       className={`track-download-button${isDownloading ? " is-downloading" : ""}`}
                       onClick={() => onDownload(track, youtubeCandidate)}
-                      disabled={isDownloading}
+                      disabled={isDownloading || downloadAll.active}
                       aria-label={isDownloading ? `Downloading ${track.name}: ${trackDownloadProgress}%` : `Download ${track.name} as audio`}
                     >
                       {isDownloading && <span className="track-download-fill" style={{ width: `${trackDownloadProgress}%` }} />}

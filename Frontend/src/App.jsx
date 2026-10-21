@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import axios from 'axios';
 import Header from './Components/Header';
 import AlbumCard from './Components/AlbumsCard';
@@ -26,6 +26,9 @@ function App() {
   const [downloadingTracks, setDownloadingTracks] = useState({});
   const [downloadProgress, setDownloadProgress] = useState({});
   const [downloadErrors, setDownloadErrors] = useState({});
+  const [downloadAll, setDownloadAll] = useState({ active: false, total: 0, completed: 0, currentTrackId: null });
+  const cancelDownloadAllRef = useRef(false);
+  const currentDownloadJobIdRef = useRef(null);
   const { theme, processImage } = useAlbumTheme();
   const { matchingJob, searchYoutube, resumeYoutube } = useYoutubeSearch();
   // Never show a saved job's results beside a different playlist.
@@ -125,7 +128,7 @@ function App() {
   };
 
   const downloadTrackAudio = async (track, candidate) => {
-    if (!candidate?.videoId || downloadingTracks[track.id]) return;
+    if (!candidate?.videoId || downloadingTracks[track.id]) return false;
     setDownloadingTracks((current) => ({ ...current, [track.id]: true }));
     setDownloadProgress((current) => ({ ...current, [track.id]: 2 }));
     setDownloadErrors((current) => ({ ...current, [track.id]: "" }));
@@ -140,6 +143,10 @@ function App() {
       }, { timeout: DOWNLOAD_TIMEOUT_MS });
       const jobId = response.data?.jobId;
       if (!jobId) throw new Error("The download service did not return a job ID.");
+      currentDownloadJobIdRef.current = jobId;
+      if (cancelDownloadAllRef.current) {
+        await axios.post(`http://127.0.0.1:3000/api/download-audio/${encodeURIComponent(jobId)}/cancel`);
+      }
 
       let jobStatus;
       do {
@@ -156,16 +163,62 @@ function App() {
         );
         jobStatus = progressResponse.data;
         setDownloadProgress((current) => ({ ...current, [track.id]: jobStatus.progress ?? 0 }));
+        if (jobStatus.status === "canceled") return false;
         if (jobStatus.status === "failed") throw new Error(jobStatus.message || "Audio download failed.");
       } while (jobStatus.status !== "complete");
+      return true;
     } catch (downloadError) {
+      if (cancelDownloadAllRef.current) return false;
       const message = downloadError.response?.data?.message || downloadError.message || "Audio download failed. Try again.";
       setDownloadProgress((current) => ({ ...current, [track.id]: 0 }));
       setDownloadErrors((current) => ({ ...current, [track.id]: message }));
+      return false;
     } finally {
+      currentDownloadJobIdRef.current = null;
       setDownloadingTracks((current) => ({ ...current, [track.id]: false }));
     }
   };
+
+  const downloadAllTracks = async () => {
+    if (downloadAll.active || !tracks.length || Object.values(downloadingTracks).some(Boolean)) return;
+    const matchesById = Object.fromEntries((youtubeResult ?? []).map((result) => [result.trackId, result]));
+    const queue = tracks.flatMap((track) => {
+      const localCheck = localChecks[track.id];
+      const candidate = localCheck?.bestMatch ?? matchesById[track.id]?.bestMatch;
+      if (!localCheck || localCheck.found || !candidate?.videoId || downloadProgress[track.id] === 100) return [];
+      return [{ track, candidate }];
+    });
+    if (!queue.length) return;
+
+    cancelDownloadAllRef.current = false;
+    setDownloadAll({ active: true, total: queue.length, completed: 0, currentTrackId: null });
+    for (const { track, candidate } of queue) {
+      if (cancelDownloadAllRef.current) break;
+      setDownloadAll((current) => ({ ...current, currentTrackId: track.id }));
+      await downloadTrackAudio(track, candidate);
+      if (cancelDownloadAllRef.current) break;
+      setDownloadAll((current) => ({ ...current, completed: current.completed + 1 }));
+    }
+    setDownloadAll((current) => ({ ...current, active: false, currentTrackId: null }));
+    cancelDownloadAllRef.current = false;
+  };
+
+  const cancelDownloadAll = async () => {
+    if (!downloadAll.active) return;
+    cancelDownloadAllRef.current = true;
+    const jobId = currentDownloadJobIdRef.current;
+    if (jobId) {
+      try {
+        await axios.post(`http://127.0.0.1:3000/api/download-audio/${encodeURIComponent(jobId)}/cancel`);
+      } catch (cancelError) {
+        console.warn("Could not cancel the active audio download:", cancelError.message);
+      }
+    }
+  };
+
+  const downloadQueueProgress = downloadAll.total
+    ? Math.min(100, Math.round(((downloadAll.completed + (downloadAll.currentTrackId ? (downloadProgress[downloadAll.currentTrackId] ?? 0) / 100 : 0)) / downloadAll.total) * 100))
+    : 0;
 
   const playlistImage = playlist?.image || PLACEHOLDER_SRC;
 
@@ -219,6 +272,10 @@ function App() {
           downloadingTracks={downloadingTracks}
           downloadProgress={downloadProgress}
           downloadErrors={downloadErrors}
+          downloadAll={downloadAll}
+          downloadQueueProgress={downloadQueueProgress}
+          onDownloadAll={downloadAllTracks}
+          onCancelDownloadAll={cancelDownloadAll}
           isLoading={isLoading}
           progress={progress}
           status={status}
