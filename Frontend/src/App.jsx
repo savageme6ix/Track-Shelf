@@ -85,43 +85,56 @@ function App() {
   const findLocalFiles = async () => {
     if (!tracks.length || isCheckingLocal) return;
     setIsCheckingLocal(true);
-    setLocalCheckStatus("Checking tracks against your Music folder…");
+    setLocalCheckStatus(`Checking ${tracks.length} tracks against your Music folder…`);
     const existingResults = Object.fromEntries((youtubeResult ?? []).map((result) => [result.trackId, result]));
     let checkedCount = 0;
+    let noCandidateCount = 0;
+    let failedCount = 0;
+    const failedTrackNames = [];
 
     try {
-      for (const track of tracks) {
-        let candidate = existingResults[track.id]?.bestMatch;
-        if (!candidate) {
-          const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
-            params: {
-              name: track.name,
-              artist: track.primaryArtist || track.artist,
-              duration: track.durationMs,
-            },
-            withCredentials: true,
+      for (let trackIndex = 0; trackIndex < tracks.length; trackIndex += 1) {
+        const track = tracks[trackIndex];
+        setLocalCheckStatus(`Checking track ${trackIndex + 1} of ${tracks.length}: “${track.name}”…`);
+        try {
+          let candidate = existingResults[track.id]?.bestMatch;
+          if (!candidate) {
+            const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
+              params: {
+                name: track.name,
+                artist: track.primaryArtist || track.artist,
+                duration: track.durationMs,
+              },
+              withCredentials: true,
+            });
+            candidate = response.data?.bestMatch;
+          }
+          if (!candidate) {
+            noCandidateCount += 1;
+            continue;
+          }
+
+          const response = await axios.post("http://127.0.0.1:3000/api/youtube/local-check", {
+            bestMatch: candidate,
+            spotifyTrack: { name: track.name, artist: track.primaryArtist || track.artist },
           });
-          candidate = response.data?.bestMatch;
+          if (!response.data?.localMatch) throw new Error("The local music check returned an unexpected response.");
+
+          setLocalChecks((current) => ({
+            ...current,
+            [track.id]: { ...response.data.localMatch, bestMatch: candidate },
+          }));
+          checkedCount += 1;
+        } catch (trackError) {
+          failedCount += 1;
+          failedTrackNames.push(track.name);
+          console.warn(`Local music check failed for “${track.name}”; continuing with the next track.`, trackError);
         }
-        if (!candidate) {
-          setLocalCheckStatus(`No YouTube best candidate was available for “${track.name}”.`);
-          continue;
-        }
-        const response = await axios.post("http://127.0.0.1:3000/api/youtube/local-check", {
-          bestMatch: candidate,
-          spotifyTrack: { name: track.name, artist: track.primaryArtist || track.artist },
-        });
-        setLocalChecks((current) => ({
-          ...current,
-          [track.id]: { ...response.data.localMatch, bestMatch: candidate },
-        }));
-        checkedCount += 1;
       }
-      if (checkedCount > 0) {
-        setLocalCheckStatus(`Finished checking ${checkedCount} track${checkedCount === 1 ? "" : "s"}.`);
-      }
-    } catch (checkError) {
-      setLocalCheckStatus(checkError.response?.data?.error || checkError.message || "Local music check failed.");
+      const summary = [`Finished checking ${checkedCount} track${checkedCount === 1 ? "" : "s"}`];
+      if (noCandidateCount) summary.push(`${noCandidateCount} had no YouTube candidate`);
+      if (failedCount) summary.push(`${failedCount} could not be checked (${failedTrackNames.slice(0, 3).join(", ")}${failedTrackNames.length > 3 ? ", …" : ""})`);
+      setLocalCheckStatus(`${summary.join(" · ")}.`);
     } finally {
       setIsCheckingLocal(false);
     }
