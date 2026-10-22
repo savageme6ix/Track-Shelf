@@ -91,8 +91,9 @@ function App() {
     let noCandidateCount = 0;
     let failedCount = 0;
     const failedTrackNames = [];
-    let quotaStoppedAt = null;
+    let quotaReachedAt = null;
     let quotaResetAt = null;
+    let skippedForQuotaCount = 0;
 
     try {
       for (let trackIndex = 0; trackIndex < tracks.length; trackIndex += 1) {
@@ -101,6 +102,10 @@ function App() {
         try {
           let candidate = existingResults[track.id]?.bestMatch;
           if (!candidate) {
+            if (quotaReachedAt) {
+              skippedForQuotaCount += 1;
+              continue;
+            }
             const response = await axios.get("http://127.0.0.1:3000/api/youtube/search", {
               params: {
                 name: track.name,
@@ -129,9 +134,10 @@ function App() {
           checkedCount += 1;
         } catch (trackError) {
           if (trackError.response?.data?.quotaExceeded) {
-            quotaStoppedAt = track.name;
+            quotaReachedAt = track.name;
             quotaResetAt = trackError.response.data.resetAt ?? null;
-            break;
+            skippedForQuotaCount += 1;
+            continue;
           }
           failedCount += 1;
           failedTrackNames.push(track.name);
@@ -141,9 +147,12 @@ function App() {
       const summary = [`Finished checking ${checkedCount} track${checkedCount === 1 ? "" : "s"}`];
       if (noCandidateCount) summary.push(`${noCandidateCount} had no YouTube candidate`);
       if (failedCount) summary.push(`${failedCount} could not be checked (${failedTrackNames.slice(0, 3).join(", ")}${failedTrackNames.length > 3 ? ", …" : ""})`);
-      if (quotaStoppedAt) {
+      if (quotaReachedAt) {
         const resetText = quotaResetAt ? ` YouTube quota resets at ${new Date(quotaResetAt).toLocaleString()}.` : "";
-        setLocalCheckStatus(`Stopped at “${quotaStoppedAt}” because YouTube’s daily quota was reached. Checked ${checkedCount} tracks before the limit.${resetText}`);
+        const skippedText = skippedForQuotaCount
+          ? ` Skipped ${skippedForQuotaCount} track${skippedForQuotaCount === 1 ? "" : "s"} that needed a new YouTube search.`
+          : "";
+        setLocalCheckStatus(`YouTube’s daily quota was reached at “${quotaReachedAt}”. Checked ${checkedCount} tracks with available candidates.${skippedText}${resetText}`);
         return;
       }
       setLocalCheckStatus(`${summary.join(" · ")}.`);
